@@ -13,12 +13,20 @@ class Settings(BaseSettings):
     whatsapp_verify_token: SecretStr = SecretStr('')
     whatsapp_qr_bridge_url: str = ''
     whatsapp_qr_bridge_token: SecretStr = SecretStr('')
+    whatsapp_app_id: str = Field(default='',pattern=r'^\d{0,40}$')
+    whatsapp_credential_key: SecretStr = SecretStr('')
+    whatsapp_graph_version: str = Field(default='v25.0',pattern=r'^v[0-9]{1,3}\.0$')
+    whatsapp_public_webhook_url: str = ''
     cookie_secure: bool = False
     session_hours: int = Field(default=12, ge=1, le=168)
     remember_days: int = Field(default=7, ge=1, le=30)
 
     @model_validator(mode='after')
     def production_checks(self):
+        if self.whatsapp_public_webhook_url:
+            parsed=urlsplit(self.whatsapp_public_webhook_url)
+            if parsed.scheme!='https' or not parsed.hostname or parsed.username or parsed.password or parsed.query or parsed.fragment or parsed.path!='/api/v1/webhooks/whatsapp':
+                raise ValueError('Public webhook must use HTTPS and the official webhook path')
         if self.whatsapp_qr_bridge_url:
             parsed=urlsplit(self.whatsapp_qr_bridge_url)
             if parsed.username or parsed.password or parsed.query or parsed.fragment or parsed.path not in ('','/') or not parsed.hostname or (parsed.scheme != 'https' and not (parsed.scheme == 'http' and parsed.hostname in ('localhost','127.0.0.1','::1'))):

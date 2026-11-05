@@ -140,3 +140,40 @@ Por solicitação explícita do usuário, existe uma segunda opção independent
 Se gateway/token não estiver configurado, o painel informa que a ativação está pendente e mantém o botão desabilitado. Erros de comunicação não são exibidos como conexão bem-sucedida. A conexão oficial continua disponível separadamente no backend; seu onboarding simplificado não foi implementado.
 
 Novos textos recebidos pelo gateway entram no canal `whatsapp_qr`, seguindo isolamento, deduplicação e regras da central. Desconectar bloqueia callbacks imediatamente e preserva histórico; reconectar após desconexão cria nova sessão. Envio continua registro local, sem transporte de saída. Geração do QR real foi validada até o navegador; pareamento, recebimento e restauração com conta/celular real ficam pendentes; a integração não oficial pode precisar de novo pareamento conforme alterações do WhatsApp. A versão de biblioteca está fixada no lockfile e requer manutenção do fornecedor.
+
+## Cadastro seguro do WhatsApp oficial por empresa
+
+O administrador configura **Integrações → WhatsApp Business → Conectar**: Phone Number ID, WABA ID e token de acesso. O servidor valida o vínculo número/conta na Graph API da Meta antes de salvar. Não marca o canal como conectado apenas por salvar as credenciais. Após validar, o aside se expande para 960px e mostra aplicativo, registro do número, inscrição WABA e recebimento pelo webhook.
+
+### Proteção dos segredos
+
+- Token criptografado com **AES-256-GCM**, nonce aleatório e contexto autenticado da empresa/número/WABA. Copiar o ciphertext para outra empresa ou alterar IDs não permite decifrá-lo.
+- A chave `WHATSAPP_CREDENTIAL_KEY` tem 32 bytes aleatórios em base64 e **não fica no banco**. Em produção, use o gerenciador de segredos da hospedagem; preserve a chave e seus backups separadamente dos backups SQL. Perdê-la exige cadastrar novos tokens. Não há rotação automática nesta entrega.
+- Somente administradores de empresa ativa/trial válido podem ler metadados, trocar credenciais e iniciar ativação. API nunca devolve token, ciphertext, App Secret ou chave. O campo de token permanece vazio ao reabrir; deixe-o vazio para manter a credencial salva, ou forneça novo token para alterar os IDs.
+- O navegador usa input password, sem localStorage/sessionStorage. O valor informado é enviado apenas no salvamento e limpo após submissão/fechamento. O transporte público deve usar HTTPS, inclusive entre BFF/API remotos. Não é possível esconder do próprio administrador o token que ele mesmo está enviando pelo navegador.
+- Erros e auditoria não contêm tokens/PIN. Logs verbosos de httpx são desabilitados e httpcore fica em WARNING porque `debug_token` da Meta exige o token na query HTTPS. Na hospedagem/APM, também desabilite captura de corpos/Authorization/query `input_token`; não configure logs de payloads sensíveis.
+- Remover conexão apaga o ciphertext e bloqueia novas importações deste número. Não revoga o token na Meta nem remove inscrições WABA compartilhadas; essa decisão deve ser feita pelo responsável no aplicativo Meta.
+
+Inicialização local de desenvolvimento (sem imprimir o segredo):
+
+```bash
+.venv/bin/python -m app.cli.integration_key
+.venv/bin/alembic upgrade head
+# Reinicie a API para carregar a chave da .env ignorada pelo Git.
+```
+
+A CLI não sobrescreve chave existente e é bloqueada em produção. Não copie chaves de testes para produção, não versione `.env` e não use NEXT_PUBLIC para segredos.
+
+### Requisitos da Meta e ações de ativação
+
+1. Tenha conta WABA, número autorizado/verificado para Cloud API e token de usuário do sistema com acessos aos ativos necessários. Validação requer `whatsapp_business_management`; registro requer também `whatsapp_business_messaging`.
+2. Configure na plataforma `WHATSAPP_APP_ID`, `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN` e `WHATSAPP_PUBLIC_WEBHOOK_URL`. O token do cliente deve pertencer ao aplicativo SaaS autorizado. App Secret/verify token são parâmetros da plataforma, não campos expostos ao cliente.
+3. Valide no painel Meta o callback HTTPS e a assinatura do campo **messages** do objeto WhatsApp Business Account. A configuração global/verificação do callback exige configuração real na Meta e não é considerada pronta só por haver uma URL no ambiente.
+4. **Validar e salvar** confirma número/WABA, e, quando o App ID/Secret estão configurados, validade, aplicativo emissor, permissões/expiração, situação de registro e inscrição do aplicativo. Sem configuração do aplicativo, a credencial pode ser salva como validada para leitura, mas as operações de ativação ficam bloqueadas e a pendência aparece no painel.
+5. Se o número ainda não estiver registrado, informe o PIN de seis dígitos e confirme **Registrar na Cloud API**. PIN não é código SMS, não é gerado arbitrariamente, não é salvo e só é usado nessa chamada. Não registra novamente número já CONNECTED e não migra automaticamente um número On-Premises.
+6. Confirme **Ativar recebimento de eventos** para inscrever o aplicativo na WABA. A API verifica o App ID antes dessa alteração. A inscrição não configura automaticamente o callback global nem o campo messages no painel Meta.
+7. Envie uma mensagem real ao número e use **Atualizar situação**. Só um evento assinado e persistido comprova o recebimento na central; campo `status=CONNECTED` da Meta indica registro do número, não valida nosso fluxo inteiro.
+
+O PIN e o registro/inscrição são operações explícitas com confirmação, nunca efeitos colaterais do salvamento. Tokens expirados/revogados exigem atualização e nova validação; não há renovação automática. Envio de mensagens, janelas de atendimento, templates e cobrança continuam nas fases seguintes.
+
+Documentação consultada: [coleção oficial Meta — WhatsApp Cloud API](https://www.postman.com/meta/whatsapp-business-platform/documentation/wlk6lh4/whatsapp-cloud-api), endpoints phone_numbers, debug_token, subscribed_apps e register. Graph API fixada em v25.0 (configurável por ambiente); host fixo graph.facebook.com, sem redirects e sem seguir URLs de paginação externas. As chamadas são verificadas em testes com transport HTTP simulado; validação de conta/token real e configuração na Meta permanecem bloqueadas pela ausência de credenciais reais.

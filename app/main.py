@@ -4,6 +4,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from app.api.routes import router
+from app.api.whatsapp_official import router as official_router
 from app.api.whatsapp_qr import router as qr_router, QR_WEBHOOK_PATH
 from app.api.whatsapp import router as whatsapp_router, WEBHOOK_PATH
 from app.api.conversations import router as conversations_router
@@ -15,6 +16,7 @@ app = FastAPI(title='AtendeHub Auth API', version='0.1.0')
 app.include_router(router)
 app.include_router(whatsapp_router)
 app.include_router(qr_router)
+app.include_router(official_router)
 app.include_router(conversations_router)
 app.include_router(platform_router)
 app.include_router(knowledge_router)

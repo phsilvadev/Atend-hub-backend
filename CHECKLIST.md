@@ -92,8 +92,9 @@ Núcleo local da central concluído e validado: cliente mínimo, conversa, respo
 
 ## FASE 03 — WHATSAPP BUSINESS CLOUD API
 
-- [ ] Validar documentação oficial e preparar credenciais por empresa — depende de conta Meta.
-- [ ] Armazenar credenciais criptografadas ou em gerenciador de segredos.
+- [x] Consultar a coleção oficial Meta e validar contratos de configuração, diagnóstico, registro e inscrição em testes.
+- [ ] Configurar conta/aplicativo Meta reais e validar credenciais autorizadas de cada empresa.
+- [x] Armazenar tokens oficiais por empresa com AES-GCM e chaves fora do banco; sessões QR criptografadas no gateway.
 - [x] Implementar validação inicial e autenticação/assinatura dos webhooks.
 - [x] Receber mensagens de texto no formato oficial com assinatura; ativação da conta Meta real permanece bloqueada.
 - [x] Registrar IDs externos únicos e deduplicar webhooks.
@@ -336,3 +337,14 @@ Decisão do usuário: permitir conexão não oficial por QR Code além da Cloud 
 Validação do recorte QR: 70 Pytest, 92 Vitest, 4 testes Node, lint/typecheck/build e 3 E2E aprovados. O teste do modal usa contrato do provedor simulado (expiração, sucesso e desconexão); não comprova pareamento real. Testes de backend verificam callbacks HMAC, sessão de outro tenant, duplicidade, permissões e falha do gateway. Serviço real iniciou via Node sem Docker; validação com WhatsApp/celular e continuidade de mensagens ainda pendente. Nenhum número real foi pareado nem credenciais reais adicionadas.
 
 Evidência adicional: E2E opt-in com gateway Baileys real e consulta de versão Web passou; recebeu QR real no navegador e confirmou desconexão (sem mocks do provedor, sem parear celular). Print do modal real gerado. Fallback de versão e suporte ao proxy implementados após resposta 405 com o protocolo empacotado. A pendência agora é parear um celular autorizado, validar textos reais e continuidade após reiniciar; não confundir geração do QR com sessão pareada em produção. Gateway de teste encerrado e estado temporário removido.
+
+### Cadastro seguro de WhatsApp oficial
+- [x] Cadastrar token/Phone Number ID/WABA e implementar validação pelas rotas documentadas da Meta, com AES-GCM por contexto e sem retorno do segredo; contrato validado com HTTP simulado.
+- [x] Integrar formulário no aside oficial, testes de segurança e prints.
+- [ ] Validar conta/token real e assinatura do aplicativo na Meta.
+
+- [x] Separar validação, registro do número e inscrição WABA, com confirmação explícita e diagnóstico da última consulta.
+- [x] Expandir painel de 640 para 960px após salvar credenciais e exibir etapas sem alegar conexão completa.
+- [x] Inicializar chave local de desenvolvimento sem imprimir/commitar; aplicar migration aditiva sem dados comerciais fictícios.
+
+Validação: 82 Pytest, 95 Vitest, lint/typecheck/build e 3 E2E aprovados. Cobertura: criptografia/contexto/nonce/tampering/chave incorreta, token nunca retornado ou logado, token inválido/expirado/conta ou app incorreto, permissões, empresa alheia, versão obsoleta, acesso revogado durante validação, remoção de ciphertext e inicialização segura da chave. HTTP Graph simulado em testes; fluxo visual usa fixture de contrato e não representa conta real. E2E cobre campos password, limpeza do token/PIN, expansão a 960px, confirmações de registro/inscrição e remoção. Prints desktop/mobile antes/depois gerados. Conta Meta, registro real, inscrição real e recebimento oficial real permanecem bloqueados por ausência de credenciais/conta/autorização externa. Docker não executado.
