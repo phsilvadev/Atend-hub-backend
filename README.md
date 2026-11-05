@@ -87,3 +87,9 @@ O seed idempotente insere três planos fictícios sem sobrescrever os já cadast
 
 ### Planejamento completo
 O [CHECKLIST.md](CHECKLIST.md) agora cobre os 14 módulos do [prompt mestre](docs/PROMPT_MESTRE.md), organizados nas 12 fases originais e na fase adicional de planos SaaS. O [histórico](docs/DEVELOPMENT_HISTORY.md) preserva as entregas anteriores. SQLite, ausência de Docker e recuperação de senha ao final refletem decisões posteriores do usuário. O roadmap completo não significa que todos os módulos estejam implementados.
+
+### Central de atendimentos manual
+
+Aplicar `.venv/bin/alembic upgrade head`. A migration `20261105_manual_conversations` adiciona clientes mínimos, conversas e histórico sem inserir exemplos. A central usa `/api/v1/conversations`: criar, listar/buscar, atribuir responsável, alterar status, encerrar/reabrir e registrar mensagens/notas. Admin e supervisor gerenciam a empresa; vendedor e operador operam os próprios atendimentos e podem assumir os livres. Foreign keys compostas, validação de tenant, versões e chaves de requisição protegem relações, conflitos e duplicações.
+
+Canal exclusivamente manual nesta entrega. Registrar texto não envia WhatsApp, não ativa IA e não confirma venda no ERP. Clientes por telefone são apenas a base mínima para a central; o CRM completo continua pendente. API.md descreve contratos e permissões. Testes específicos: `tests/test_conversations.py`. Nenhuma conversa fictícia é criada em desenvolvimento ou produção pelo startup/migration.

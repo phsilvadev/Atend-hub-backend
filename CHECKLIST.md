@@ -61,21 +61,29 @@ Este arquivo acompanha a plataforma completa; uma tela demonstrativa não compro
 
 ## FASE 02 — CENTRAL DE ATENDIMENTOS
 
-- [ ] Criar entidades de conversas e mensagens com company_id e índices.
-- [ ] Associar conversa ao cliente e registrar origem/canal.
+Recorte manual entregue e validado: cliente mínimo, conversa, responsável, status e histórico persistidos. A Fase 02 permanece parcial: WhatsApp, IA, leitura/não lidas, métricas e transferência automática continuam pendentes.
+
+- [x] Criar entidades de conversas e mensagens com company_id e índices.
+- [x] Associar conversa ao cliente e registrar origem/canal.
 - [ ] Implementar criação automática de atendimento a partir de mensagem recebida.
-- [ ] Criar endpoints de listagem, detalhe e filtros da central.
-- [ ] Implementar status: novo, IA, humano, aguardando cliente, orçamento, venda e encerrado.
-- [ ] Atribuir vendedores e registrar histórico de atribuições.
+- [x] Criar endpoints de listagem, detalhe e filtros da central.
+- [x] Implementar estados manuais: novo, humano, aguardando cliente, orçamento, convertido e encerrado.
+- [ ] Ativar estado/execução de atendimento por IA e transições automáticas (enum reservado, uso bloqueado nesta etapa).
+- [x] Atribuir vendedores e registrar histórico de atribuições.
 - [ ] Transferir atendimento IA/humano com exclusão de respostas concorrentes.
-- [ ] Armazenar e consultar histórico de mensagens recebidas e enviadas.
-- [ ] Permitir respostas manuais com autorização por empresa.
+- [x] Armazenar histórico manual: relato registrado, mensagem manual, nota interna e eventos de sistema, com ator/data e paginação.
+- [ ] Receber/enviar mensagens externas e registrar identificadores/status reais de entrega via WhatsApp.
+- [x] Registrar textos manuais com autorização por empresa e propriedade do atendimento. O registro não faz entrega externa.
+- [ ] Enviar respostas ao cliente por transporte externo validado (Fase 03).
 - [ ] Controlar mensagens não lidas e leitura por usuário.
-- [ ] Registrar tempos, horário de atendimento e última interação.
-- [ ] Encerrar/reabrir atendimento e registrar auditoria.
-- [ ] Prevenir mensagens duplicadas e conflitos IA/vendedor.
-- [ ] Conectar frontend da central aos endpoints reais.
-- [ ] Testar transições, atribuição, transferência, concorrência, permissões e isolamento.
+- [x] Persistir criação, última atualização e encerramento/reabertura dos atendimentos manuais.
+- [ ] Calcular tempos de primeira resposta/atendimento e aplicar horário comercial na execução automática.
+- [x] Encerrar/reabrir atendimento e registrar auditoria.
+- [x] Deduplicar criação/mensagens por chave de requisição e proteger atualizações por versão (compare-and-swap).
+- [ ] Prevenir duplicidade de eventos externos e conflitos entre IA e vendedor após integrações.
+- [x] Conectar frontend da central aos endpoints reais.
+- [x] Testar transições manuais, atribuição humana, encerramento/reabertura, retry, versão obsoleta, permissões, isolamento e FKs compostas no banco.
+- [ ] Testar transferência IA/humano e concorrência com workers/webhooks quando disponíveis.
 
 ## FASE 03 — WHATSAPP BUSINESS CLOUD API
 
@@ -251,8 +259,8 @@ Este arquivo acompanha a plataforma completa; uma tela demonstrativa não compro
 
 ## Dependências, bloqueios e próxima atividade
 
-- Etapa entregue: Fase 13 no recorte de exibição, catálogo seed e skeleton. A fase completa permanece aberta por cobrança/contratação e limites reais pendentes.
-- Próximo módulo de negócio sugerido: entidades e endpoints da central de atendimentos (Fase 02), após validar/entregar o recorte atual; não iniciado automaticamente.
+- Planos entregues no recorte de exibição, catálogo seed e skeleton. Cobrança/contratação e limites reais permanecem pendentes.
+- Etapa atual entregue: Fase 02 manual. Próximos itens são leitura/não lidas e evolução da central, seguidos pela integração WhatsApp da Fase 03; IA depende de fases posteriores.
 - WhatsApp: conta Meta, número habilitado, app/webhook e credenciais oficiais.
 - OpenAI: credenciais, escolha do modelo e definição de custeio por empresa/plataforma.
 - GestãoClick: documentação oficial confirmada, acesso de integração e permissões; não há endpoints inventados.
@@ -263,6 +271,13 @@ Este arquivo acompanha a plataforma completa; uma tela demonstrativa não compro
 
 ## Evidências e regra de atualização
 
-As entregas de fundação, equipe e empresa já possuem testes Pytest/Vitest e E2E reais com SQLite temporário. Validação atual: 79 testes Vitest, 38 Pytest e 8 cenários E2E aprovados, além de build/lint. Testes cobrem seed idempotente, alteração de preço/nome no banco, exclusão de planos inativos/demo em produção, trial ativo/expirado, plano atual, isolamento, skeleton e layout mobile. Reexecução de Planos após ajustes finais aprovada; formatação de centavos testada. Seed aplicado no SQLite local de desenvolvimento; nenhuma cobrança nem Docker executado. Prints desktop/mobile e skeleton gerados. Build/lint e os testes pertinentes devem passar antes de marcar uma nova tarefa.
+As entregas de fundação, equipe e empresa já possuem testes Pytest/Vitest e E2E reais com SQLite temporário. Validação da entrega de Planos: 79 testes Vitest, 38 Pytest e 8 cenários E2E aprovados, além de build/lint. Testes cobrem seed idempotente, alteração de preço/nome no banco, exclusão de planos inativos/demo em produção, trial ativo/expirado, plano atual, isolamento, skeleton e layout mobile. Reexecução de Planos após ajustes finais aprovada; formatação de centavos testada. Seed aplicado no SQLite local de desenvolvimento; nenhuma cobrança nem Docker executado. Prints desktop/mobile e skeleton gerados. Build/lint e os testes pertinentes devem passar antes de marcar uma nova tarefa.
 
 Leia este arquivo antes de cada tarefa; selecione item/dependências; sinalize em andamento; implemente; valide; atualize README/API/arquitetura quando aplicável; registre resultado e bloqueios. Não interpretar módulos pendentes como autorização para implementá-los todos de uma vez.
+
+### Execução atual — Fase 02 manual
+- [x] Criar migration, entidades e API de conversas/mensagens com autorização e controle de concorrência.
+- [x] Conectar a central existente à API com criação, atribuição, status e histórico manual.
+- [x] Testar persistência, permissões, isolamento, duplicidade de requisições e conflitos; gerar prints.
+
+Validação da Fase 02 manual: 86 testes Vitest, 44 Pytest e 9 E2E aprovados, além de build e lint. Inclui API real/SQLite temporário, reload, busca, atribuição, histórico, encerramento/reabertura, versão obsoleta, retries, isolamento e restrição de propriedade; FKs no banco também rejeitam vínculos cruzados. Busca por telefone formatado revalidada; captura mobile aguarda fim da animação e confere dimensões. Migration aplicada ao SQLite local, sem inserir conversas fictícias. Protótipo anterior preservado em pasta demo sem importação pelas rotas. Nenhum Docker executado.

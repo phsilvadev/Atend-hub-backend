@@ -4,10 +4,12 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from app.api.routes import router
+from app.api.conversations import router as conversations_router
 from app.core.config import get_settings
 
 app = FastAPI(title='AtendeHub Auth API', version='0.1.0')
 app.include_router(router)
+app.include_router(conversations_router)
 logger = logging.getLogger('atendehub')
 
 @app.middleware('http')

@@ -137,3 +137,41 @@ Cada plano contém código, nome, descrição, `monthly_price_cents`, moeda BRL,
 A consulta permanece acessível na API após expirar o trial, sem liberar módulos operacionais. O guard atual do workspace ainda bloqueia entrada após expiração; uma página de contratação fora do workspace segue pendente. Não há endpoint público para alterar plano, renovação, cobrança ou limites. Datas de cobrança não são fabricadas.
 
 Seed demonstrativo explícito: `python -m app.seeds.plans`, somente em desenvolvimento/testes. Cria planos ausentes sem sobrescrever existentes. Valores fictícios: Essencial R$149/mês (3 usuários), Profissional R$349/mês (10), Empresarial R$799/mês (30). Recursos são propostas fictícias de catálogo, não habilitam módulos nem aplicam cotas reais. Não executar como carga comercial de produção.
+
+## Central de atendimentos — etapa manual
+
+Todas as rotas abaixo exigem sessão, empresa/usuário ativos e trial válido. `company_id`, canal, autor e horários são derivados no servidor. Administradores/supervisores veem e alteram todos os atendimentos de sua empresa; vendedores/operadores só veem os seus e os sem responsável. Recursos de outro tenant ou atribuídos a outro vendedor retornam 404.
+
+| Método | Endpoint | Uso |
+|---|---|---|
+| GET | `/api/v1/conversations?q=&mine=false&offset=0&limit=50` | Busca por cliente, empresa do cliente, telefone ou assunto; filtros `status` e `mine`; `{items,total}`. Limite máximo 100. |
+| GET | `/api/v1/conversations/assignees` | Pessoas ativas da empresa: somente id, nome e perfil, sem e-mail. |
+| POST | `/api/v1/conversations` | Criação manual idempotente. |
+| GET | `/api/v1/conversations/{id}` | Cliente, responsável, status, canal, datas e versão atual. |
+| PATCH | `/api/v1/conversations/{id}` | Alterar status e/ou responsável com versão esperada. |
+| GET | `/api/v1/conversations/{id}/messages?before=123&limit=100` | Últimas mensagens em ordem crescente; `next_before` permite carregar anteriores. Limite máximo 200. |
+| POST | `/api/v1/conversations/{id}/messages` | Registrar mensagem manual ou nota interna, sem transporte externo. |
+
+Criação:
+
+```json
+{
+  "request_id": "22222222-2222-4222-8222-222222222222",
+  "customer_name": "Carlos Mendes",
+  "customer_phone": "(11) 99999-0101",
+  "customer_business": "Construtora Vale",
+  "subject": "Metalon 30x30 chapa 18",
+  "assigned_user_id": null,
+  "initial_message": "Solicitação registrada manualmente."
+}
+```
+
+`request_id` deve ser um UUID novo por operação, reutilizado em tentativas da mesma operação. Mesma chave/corpo retorna o mesmo recurso; chave com conteúdo/ator diferente retorna 409. Clientes são reutilizados por telefone normalizado dentro da empresa. Formatos brasileiros de 10/11 dígitos sem `+` recebem prefixo 55; telefone internacional com `+` preserva o DDI. O cadastro existente não é sobrescrito por uma nova solicitação. Cliente mínimo não substitui o futuro módulo CRM.
+
+Criar com responsável inicia `human`; sem responsável, `new`. Para vendedores/operadores, responsável é sempre o próprio usuário. Somente administradores/supervisores transferem para outras pessoas ou removem a atribuição; vendedores/operadores podem assumir um atendimento livre atribuindo-o a si mesmos. Responsável precisa estar ativo e pertencer à empresa.
+
+PATCH: `{"version":1,"status":"quoting"}` ou `{"version":1,"assigned_user_id":"UUID"}`. Status manuais: `new`, `human`, `awaiting_customer`, `quoting`, `converted`, `closed`. `ai` está reservado e retorna 409 nesta etapa. Fechado deve ser reaberto como `human` antes de avançar; encerramento/reabertura e mudanças de responsável/status ficam no histórico. `converted` é uma marcação manual, sem confirmar venda no ERP nem emitir documento fiscal.
+
+Registro de mensagem: `{"request_id":"UUID","version":2,"kind":"internal_note","body":"Confirmar disponibilidade."}`. Tipos aceitos: `manual_outbound` e `internal_note`. `customer_record` e `system` são criados apenas pelo servidor. Campo body: até 4.000 caracteres, sem branco vazio. Mensagens preservam ator e data. Não há envio WhatsApp, confirmação de entrega ou mensagem gerada pela IA.
+
+Vendedores/operadores devem assumir o atendimento antes de alterar status ou registrar mensagens. Não é permitido registrar em status closed, converted ou ai: reabrir atendimento humano. Atualizações usam compare-and-swap por versão; mudanças concorrentes retornam 409. O frontend preserva o texto do usuário ao falhar e permite atualizar/revisar antes de tentar de novo. Criação e mensagens usam chaves únicas no banco; auditamos operações sem copiar corpo de mensagem para logs de auditoria.
