@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Request, Response, HTTPException
 from sqlalchemy.orm import Session as DBSession
 from sqlalchemy.exc import IntegrityError
-from app.api.dependencies import current_context, admin_context, Context
+from app.api.dependencies import current_context, admin_context, active_tenant, Context
 from app.core.config import get_settings, Settings, COOKIE_NAME
 from app.core.database import get_db
 from app.core.security import now, throttle, passwords
@@ -9,6 +9,8 @@ from app.models.auth import User, Session
 from app.schemas.auth import LoginInput, RegisterInput, UserInput, UserUpdate, UserOutput, IdentityOutput
 from app.services import auth
 from app.repositories.users import in_company
+from app.schemas.company import CompanySettingsInput, CompanySettingsOutput
+from app.services import company as company_service
 
 router = APIRouter(prefix='/api/v1')
 
@@ -92,3 +94,12 @@ def update_user(user_id: str, data: UserUpdate, context: Context = Depends(admin
         db.rollback()
         raise HTTPException(409, 'E-mail indisponível.')
     return user
+
+
+@router.get('/company/settings', response_model=CompanySettingsOutput)
+def company_settings(context: Context = Depends(active_tenant), db: DBSession = Depends(get_db)):
+    return company_service.read_settings(db, context.company)
+
+@router.patch('/company/settings', response_model=CompanySettingsOutput)
+def save_company_settings(data: CompanySettingsInput, context: Context = Depends(admin_context), db: DBSession = Depends(get_db)):
+    return company_service.save_settings(db, context, data)

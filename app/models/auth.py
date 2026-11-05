@@ -1,5 +1,5 @@
 import uuid
-from sqlalchemy import Boolean, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import Boolean, ForeignKey, Integer, String, UniqueConstraint, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 from app.core.database import Base
 
@@ -47,3 +47,20 @@ class AuthAttempt(Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=uid)
     key_hash: Mapped[str] = mapped_column(String(64), index=True)
     created_at: Mapped[int] = mapped_column(Integer, index=True)
+
+class CompanyProfile(Base):
+    __tablename__ = 'company_profiles'
+    company_id: Mapped[str] = mapped_column(ForeignKey('companies.id'), primary_key=True)
+    legal_name: Mapped[str] = mapped_column(String(160), default='')
+    tax_id: Mapped[str] = mapped_column(String(14), default='')
+    phone: Mapped[str] = mapped_column(String(20), default='')
+    email: Mapped[str] = mapped_column(String(254), default='')
+    postal_code: Mapped[str] = mapped_column(String(8), default='')
+    street: Mapped[str] = mapped_column(String(160), default='')
+    number: Mapped[str] = mapped_column(String(20), default='')
+    complement: Mapped[str] = mapped_column(String(100), default='')
+    district: Mapped[str] = mapped_column(String(100), default='')
+    city: Mapped[str] = mapped_column(String(100), default='')
+    state: Mapped[str] = mapped_column(String(2), default='')
+    timezone: Mapped[str] = mapped_column(String(64), default='America/Sao_Paulo')
+    business_hours: Mapped[dict] = mapped_column(JSON, default=dict)

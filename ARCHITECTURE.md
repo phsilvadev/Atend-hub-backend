@@ -13,3 +13,6 @@ Mutações validam Origin/Referer permitido. A API não habilita CORS amplo; o f
 Não há create_all no startup: aplique migrations explicitamente. Pytest cria SQLite temporário via migrations e valida isolamento, autenticação e reversão do esquema.
 
 Produção e demais módulos estão pendentes no CHECKLIST.md. Nenhum Docker é necessário. Frontend e seus testes estão no repositório AtendeHub, fora deste backend independente.
+
+## Perfil da empresa e horários
+`CompanyProfile` possui chave primária/FK `company_id` (relação 1:1 com Company), campos de contato/endereço e JSON com sete dias de atendimento. O nome fantasia continua em `Company.name`, preservando os contratos de autenticação e cabeçalho. Schema Pydantic valida CNPJ (inclusive alfanumérico), contato, CEP, UF, fuso IANA e faixas de horário. `app/services/company.py` lê e grava exclusivamente a empresa do contexto autenticado. GET exige tenant ativo; PATCH exige administrador, atualiza nome/perfil em uma transação e registra auditoria sem copiar informações pessoais. A migration aditiva não preenche dados fictícios. Os horários não executam automações nesta fase.

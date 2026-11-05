@@ -70,3 +70,6 @@ Código inicial extraído de `backend/` do commit `c5c3276` do projeto AtendeHub
 
 ### Edição de equipe
 Administradores podem editar nome, e-mail, perfil e ativação de usuários da própria empresa via `PATCH /api/v1/users/{user_id}`. Mudanças de acesso revogam as sessões; não é permitido desativar ou rebaixar a própria conta. Consulte API.md.
+
+### Configurações da empresa
+Aplicar `.venv/bin/alembic upgrade head` antes de executar a API. A migration `20261105_company_profile` adiciona contato, endereço e horários sem modificar empresas existentes. Membros consultam o cadastro por `GET /api/v1/company/settings`; somente administradores alteram por `PATCH`, com auditoria e isolamento pelo tenant da sessão. Consulte API.md. Horários são apenas configuração nesta etapa; integrações continuam fora deste escopo.

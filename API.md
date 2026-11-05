@@ -101,3 +101,29 @@ Proteja/remova o arquivo temporário de cookies após usar. Não compartilhe coo
 `PATCH /api/v1/users/{user_id}` — sessão de administrador e trial válido. Corpo completo: `{"name":"Ana Souza","email":"ana@example.com","role":"seller","active":true}`. Retorna `UserOutput` (200), sem senha. Campos extras, inclusive `company_id` e `password`, são rejeitados (422).
 
 O usuário é buscado exclusivamente na empresa da sessão: outro tenant ou ID inexistente retorna 404. E-mail já utilizado retorna 409 com rollback. Administradores não podem desativar ou rebaixar a própria conta (409). Alterações de e-mail, perfil ou ativação revogam as sessões do usuário; exige novo login. Operação registrada como `user.updated`, sem credenciais na auditoria. Origem da requisição validada contra CSRF.
+
+## Configurações da empresa
+
+`GET /api/v1/company/settings` — membros autenticados com empresa ativa e trial válido consultam exclusivamente a própria empresa. Retorna `company_id`, `name` (nome fantasia), `legal_name`, `tax_id` (CNPJ), `phone`, `email`, `postal_code`, `street`, `number`, `complement`, `district`, `city`, `state`, `timezone` e `business_hours`.
+
+`PATCH /api/v1/company/settings` — somente administrador. Enviar os campos acima, exceto `company_id`. O corpo representa o formulário completo; `name` é obrigatório e os demais dados cadastrais podem permanecer vazios. IDs, plano, trial e credenciais não podem ser alterados por esse endpoint. Retorna os dados normalizados (200), ou 401/403/422. Origem validada contra CSRF. Alteração atômica do nome e perfil, auditada como `company.settings.updated` sem dados pessoais no evento.
+
+```json
+{
+  "name": "Minha distribuidora",
+  "timezone": "America/Sao_Paulo",
+  "business_hours": {
+    "mon": {"enabled": true, "opens": "08:00", "closes": "18:00"},
+    "tue": {"enabled": false, "opens": null, "closes": null},
+    "wed": {"enabled": false, "opens": null, "closes": null},
+    "thu": {"enabled": false, "opens": null, "closes": null},
+    "fri": {"enabled": false, "opens": null, "closes": null},
+    "sat": {"enabled": false, "opens": null, "closes": null},
+    "sun": {"enabled": false, "opens": null, "closes": null}
+  }
+}
+```
+
+CNPJ numérico ou alfanumérico validado pelos dígitos verificadores; CNPJ e CEP normalizados sem pontuação. Telefone de 10 a 15 dígitos, e-mail válido, UF brasileira e fuso IANA. Horários `HH:mm`, uma faixa por dia, com abertura anterior ao encerramento; dias inativos têm horários nulos. Não há suporte a virada de dia, intervalos de almoço ou feriados nesta etapa. Esses horários são configurações persistidas; não ativam automações de IA ou WhatsApp.
+
+Empresas existentes mantêm o nome e seus registros. Sem perfil cadastrado, os campos adicionais são vazios e todos os dias ficam sem atendimento configurado. O GET não cria registros. Aplicar `alembic upgrade head` antes de iniciar a API atualizada.
