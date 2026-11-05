@@ -248,3 +248,14 @@ Operação auditada como platform.companies.list. Nenhum POST/PATCH para criaç�
 - `POST /api/v1/webhooks/whatsapp`: JSON da Meta assinado por HMAC-SHA256 dos bytes originais em `X-Hub-Signature-256: sha256=...`. Limite real 1 MiB; 401 assinatura inválida, 400 estrutura inválida, 413 limite, 503 segredo ausente, 200 após commit ou evento não suportado. Única exceção POST à validação de Origin; demais endpoints preservam CSRF. Sem cookies de autenticação exigidos no webhook.
 - Somente `object=whatsapp_business_account`, `changes[].field=messages`, tipo `text`, remetente numérico de 10–15 dígitos e body 1–4096 são importados. IDs externos até 200 caracteres; WABA/número devem ter vínculo cadastrado por CLI. Eventos sem vínculo, tipo não suportado e empresas bloqueadas são ignorados.
 - `GET /api/v1/conversations` e histórico existentes incluem `channel=whatsapp` e `kind=whatsapp_inbound`; seguem permissões e isolamento já existentes. Não há resposta automática ou envio real. IDs externos permanecem no banco, associados ao ID da mensagem local.
+
+## WhatsApp QR Code — painel do cliente
+
+Exige cookie de sessão da empresa, usuário **admin**, empresa ativa e trial válido. POST também exige Origin permitido. O cliente nunca fornece company_id ou session_id; corpo é `{}`, campos extras são rejeitados.
+
+- `GET /api/v1/integrations/whatsapp-qr`: `{company_id,enabled,status,qr_data_url,qr_expires_at,phone}`. `enabled` indica configuração do serviço, não conexão com celular. QR PNG é temporário e acessível somente ao admin.
+- `POST /api/v1/integrations/whatsapp-qr/connect`: iniciar/reutilizar pareamento; 503 se gateway indisponível; nunca retorna token ou chaves de sessão.
+- `POST /api/v1/integrations/whatsapp-qr/disconnect`: desativa vínculo antes de chamar logout; se gateway falhar retorna 503, mas callbacks já estão bloqueados. Pode repetir para concluir logout.
+- `POST /api/v1/webhooks/whatsapp-qr`: exclusivo do gateway interno. Sem cookie/Origin, exige `x-bridge-timestamp` (epoch, tolerância 300s), `x-bridge-signature` HMAC-SHA256 hexadecimal de `timestamp + '.' + corpo original`, chave compartilhada. Corpo até 64KiB: `{session_id,external_id,sender,name,body,timestamp}`. Não aceita tenant arbitrário. Sessões antigas/inativas são ignoradas, replay de mensagem é deduplicado. 401 assinatura/timestamp inválido, 400 payload inválido, 503 desabilitado.
+
+Estados do gateway: disconnected, connecting, qr, connected, error. Histórico da central inclui `channel=whatsapp_qr`, mensagens `kind=whatsapp_inbound`. Sem grupos/mídias/LID não resolvido, mensagens próprias ou importação histórica.

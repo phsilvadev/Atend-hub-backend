@@ -1,6 +1,7 @@
 from alembic import context
 from app.core.config import get_settings
 from app.core.database import Base, make_engine
+from app.models import whatsapp_qr  # noqa: F401
 from app.models import whatsapp  # noqa: F401
 from app.models import knowledge  # noqa: F401
 from app.models import conversations  # noqa: F401

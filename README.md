@@ -128,3 +128,15 @@ Neste recorte, o processamento é **síncrono e transacional**, com retorno 200 
 Sem credenciais/conta Meta e callback público, a ativação externa permanece pendente. Os testes usam apenas app/números fictícios em SQLite temporário. Nenhum Docker foi executado.
 
 Referência oficial consultada: [webhooks — documentação hospedada pela Meta](https://whatsapp.github.io/WhatsApp-Nodejs-SDK/api-reference/webhooks/start/). O SDK está arquivado e não é utilizado; a página confirma challenge e assinatura. A documentação atual em developers.facebook.com retornou HTTP 429 durante a consulta; revalidar onboarding/conta e configurações atuais antes da ativação real. Não há chamadas de envio nem endpoints Graph inventados.
+
+## WhatsApp não oficial por QR Code
+
+Por solicitação explícita do usuário, existe uma segunda opção independente da conexão oficial: gateway Baileys em [whatsapp-bridge](whatsapp-bridge/README.md). O administrador da distribuidora abre **Integrações → WhatsApp por QR Code → Conectar WhatsApp**, e faz a leitura em Dispositivos conectados no celular. Não é necessário preencher número/token Meta no navegador.
+
+1. Execute `alembic upgrade head` e configure `WHATSAPP_QR_BRIDGE_URL` e `WHATSAPP_QR_BRIDGE_TOKEN` somente na API.
+2. Instale/execute o gateway Node conforme seu README, com token correspondente e chave própria de criptografia. Não há Docker nesta execução.
+3. Inicie a API e o frontend. Cada empresa recebe sua própria sessão; apenas admin ativo com trial válido pode obter o QR ou desconectar.
+
+Se gateway/token não estiver configurado, o painel informa que a ativação está pendente e mantém o botão desabilitado. Erros de comunicação não são exibidos como conexão bem-sucedida. A conexão oficial continua disponível separadamente no backend; seu onboarding simplificado não foi implementado.
+
+Novos textos recebidos pelo gateway entram no canal `whatsapp_qr`, seguindo isolamento, deduplicação e regras da central. Desconectar bloqueia callbacks imediatamente e preserva histórico; reconectar após desconexão cria nova sessão. Envio continua registro local, sem transporte de saída. Geração do QR real foi validada até o navegador; pareamento, recebimento e restauração com conta/celular real ficam pendentes; a integração não oficial pode precisar de novo pareamento conforme alterações do WhatsApp. A versão de biblioteca está fixada no lockfile e requer manutenção do fornecedor.

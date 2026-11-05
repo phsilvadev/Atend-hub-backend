@@ -74,7 +74,7 @@ class ConversationOutput(BaseModel):
     assigned_user: PersonOutput | None
     subject: str
     status: Status
-    channel: Literal['manual','whatsapp']
+    channel: Literal['manual','whatsapp','whatsapp_qr']
     created_at: int
     updated_at: int
     closed_at: int | None

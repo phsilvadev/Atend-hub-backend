@@ -2,6 +2,7 @@ from functools import lru_cache
 from typing import Literal
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import model_validator, Field, SecretStr
+from urllib.parse import urlsplit
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file='.env', extra='ignore')
@@ -10,12 +11,18 @@ class Settings(BaseSettings):
     allowed_origins: list[str] = ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001']
     whatsapp_app_secret: SecretStr = SecretStr('')
     whatsapp_verify_token: SecretStr = SecretStr('')
+    whatsapp_qr_bridge_url: str = ''
+    whatsapp_qr_bridge_token: SecretStr = SecretStr('')
     cookie_secure: bool = False
     session_hours: int = Field(default=12, ge=1, le=168)
     remember_days: int = Field(default=7, ge=1, le=30)
 
     @model_validator(mode='after')
     def production_checks(self):
+        if self.whatsapp_qr_bridge_url:
+            parsed=urlsplit(self.whatsapp_qr_bridge_url)
+            if parsed.username or parsed.password or parsed.query or parsed.fragment or parsed.path not in ('','/') or not parsed.hostname or (parsed.scheme != 'https' and not (parsed.scheme == 'http' and parsed.hostname in ('localhost','127.0.0.1','::1'))):
+                raise ValueError('QR gateway requires HTTPS or localhost HTTP, without credentials or path')
         if self.app_env == 'production':
             if not self.cookie_secure or not self.allowed_origins or any(not o.startswith('https://') for o in self.allowed_origins):
                 raise ValueError('Production requires secure cookies and explicit HTTPS origins')

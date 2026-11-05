@@ -323,3 +323,16 @@ Superadmin frontend entregue em repositório separado super-admin-atendehub: Nex
 - [ ] Validar conta Meta real e callback público HTTPS (depende de credenciais/hospedagem).
 
 Validação desta etapa: 66 Pytest, 89 Vitest, lint/build do cliente e 1 E2E real de webhook→API→central aprovados. Inclui replay concorrente, rollback/retry, assinatura, isolamento WABA/número/empresa e empresa desativada. Print gerado com SQLite temporário e dados fictícios de teste. Recebimento síncrono, sem fila, envio, status de entrega ou IA; não marcar Fase 03 completa. Segredos do app vêm do ambiente; gestão de credenciais por tenant e tela de conexão ficam pendentes. Meta real/HTTPS ainda não validados. Nenhum Docker executado.
+
+### Execução atual — WhatsApp por QR Code
+
+Decisão do usuário: permitir conexão não oficial por QR Code além da Cloud API. Esta autorização substitui a restrição anterior a integrações exclusivamente oficiais para este recorte. Cada sessão pertence ao tenant do cliente.
+- [x] Criar serviço Node/Baileys, autenticação HTTP interna e armazenamento AES-GCM; validar com testes locais.
+- [x] Criar API administrativa de conexão/status/desconexão e entrada autenticada; testar contratos, isolamento, callbacks e falhas.
+- [x] Integrar tela do cliente com skeleton/estados reais e cards conforme referência; testar e gerar prints desktop/mobile.
+- [x] Validar geração de QR Code real via gateway → API → BFF → navegador e desconexão sem parear telefone.
+- [ ] Validar pareamento real com celular autorizado, recebimento real e restauração da sessão pareada.
+
+Validação do recorte QR: 70 Pytest, 92 Vitest, 4 testes Node, lint/typecheck/build e 3 E2E aprovados. O teste do modal usa contrato do provedor simulado (expiração, sucesso e desconexão); não comprova pareamento real. Testes de backend verificam callbacks HMAC, sessão de outro tenant, duplicidade, permissões e falha do gateway. Serviço real iniciou via Node sem Docker; validação com WhatsApp/celular e continuidade de mensagens ainda pendente. Nenhum número real foi pareado nem credenciais reais adicionadas.
+
+Evidência adicional: E2E opt-in com gateway Baileys real e consulta de versão Web passou; recebeu QR real no navegador e confirmou desconexão (sem mocks do provedor, sem parear celular). Print do modal real gerado. Fallback de versão e suporte ao proxy implementados após resposta 405 com o protocolo empacotado. A pendência agora é parear um celular autorizado, validar textos reais e continuidade após reiniciar; não confundir geração do QR com sessão pareada em produção. Gateway de teste encerrado e estado temporário removido.

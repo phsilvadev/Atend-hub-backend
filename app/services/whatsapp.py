@@ -8,7 +8,7 @@ from app.models.auth import Company
 from app.models.conversations import Customer, Conversation, ConversationMessage
 from app.models.whatsapp import WhatsAppNumber, WhatsAppReceipt
 
-def receive(db, payload):
+def receive(db, payload, channel='whatsapp'):
     if payload.get('object') != 'whatsapp_business_account':
         return
     for entry in payload.get('entry', []):
@@ -45,9 +45,9 @@ def receive(db, payload):
                     customer = Customer(company_id=company.id, phone=sender, name=name[:120], business_name='', created_at=now())
                     db.add(customer)
                     db.flush()
-                conv = db.scalar(select(Conversation).where(Conversation.company_id == company.id, Conversation.customer_id == customer.id, Conversation.channel == 'whatsapp', Conversation.status.not_in(['closed','converted'])).order_by(Conversation.created_at.desc()))
+                conv = db.scalar(select(Conversation).where(Conversation.company_id == company.id, Conversation.customer_id == customer.id, Conversation.channel == channel, Conversation.status.not_in(['closed','converted'])).order_by(Conversation.created_at.desc()))
                 if not conv:
-                    conv = Conversation(company_id=company.id, customer_id=customer.id, subject='Conversa pelo WhatsApp', channel='whatsapp', status='new', request_id=str(uuid4()), request_hash=hashlib.sha256(external.encode()).hexdigest(), created_at=now(), updated_at=now(), version=1, opened_at=now(), handling_seconds=0)
+                    conv = Conversation(company_id=company.id, customer_id=customer.id, subject='Conversa pelo WhatsApp', channel=channel, status='new', request_id=str(uuid4()), request_hash=hashlib.sha256(external.encode()).hexdigest(), created_at=now(), updated_at=now(), version=1, opened_at=now(), handling_seconds=0)
                     db.add(conv)
                     db.flush()
                 # Atomic increment preserves optimistic concurrency of human edits.
