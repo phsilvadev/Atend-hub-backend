@@ -188,3 +188,48 @@ Não lidos: registros de cliente, mensagens manuais e notas de outras pessoas co
 Tempos: primeira resposta conta o primeiro `manual_outbound` após a criação, sem considerar notas internas/eventos de sistema. É tempo de registro manual, não de entrega externa. `handling_seconds` soma períodos abertos; closed/converted pausam a contagem e a reabertura inicia novo período, sem incluir o intervalo encerrado. Os cálculos são em segundos corridos, sem aplicar expediente/SLA comercial. A migration preenche métricas de registros existentes a partir dos horários salvos, sem gerar conteúdo fictício.
 
 O frontend consulta novidades a cada 5 segundos enquanto visível, sem sobrepor ciclos. Retoma ao ganhar foco, preserva rascunho, histórico carregado e filtros/paginação. Falhas mostram estado de reconexão e tentam novamente; perda de sessão/expiração bloqueia a central e perda de atribuição limpa o histórico da tela. Isso é polling autenticado, não um canal público de eventos. IA/WhatsApp e seus recibos externos continuam nas fases próprias.
+
+## Plataforma: acesso separado e conhecimento comum
+
+Implementação e limites: [PLATFORM_KNOWLEDGE.md](docs/PLATFORM_KNOWLEDGE.md). As rotas de plataforma exigem cookie próprio e não aceitam sessão de empresa. Não existe cadastro público de superadmin. Provisionar com CLI; nenhum usuário/senha padrão.
+
+| Método | Endpoint | Uso |
+|---|---|---|
+| POST | `/api/v1/platform/auth/login` | email/password; resposta id/nome/papel, cookie HttpOnly de 1h. |
+| GET | `/api/v1/platform/auth/me` | Identidade de plataforma. |
+| POST | `/api/v1/platform/auth/logout` | Revoga sessão e remove cookie. |
+| POST | `/api/v1/platform/knowledge/imports` | Corpo JSON de arquivo autorizado; retorna somente conteúdo tratado e IDs dos rascunhos. |
+| GET | `/api/v1/platform/knowledge/imports` | Importações tratadas, paginadas por offset/limit (máximo 50). |
+| GET | `/api/v1/platform/knowledge/imports/{id}` | Detalhe tratado, restrito à plataforma. |
+| GET/POST | `/api/v1/platform/knowledge` | Listar/criar rascunhos da biblioteca comum. |
+| GET/PATCH | `/api/v1/platform/knowledge/{id}` | Consultar/editar revisão atual; PATCH exige versão. |
+| GET | `/api/v1/platform/knowledge/{id}/revisions` | Revisões imutáveis do conteúdo. |
+| POST | `/api/v1/platform/knowledge/{id}/publish` | Publicar após confirmação explícita da revisão. |
+| POST | `/api/v1/platform/knowledge/{id}/deactivate` | Desativar com versão esperada. |
+| GET | `/api/v1/knowledge?q=metalon&offset=0&limit=20` | Empresa autenticada com trial válido consulta somente biblioteca comum publicada/ativa. Busca textual, não semântica. |
+| GET | `/api/v1/knowledge/{id}` | Apenas a revisão publicada; rascunhos/desativados retornam 404. |
+
+Mutações exigem Origin/Referer configurado. Para uso direto local via curl, enviar `Origin: http://localhost:3000` (ou origem explicitamente configurada). Para usar Swagger diretamente na origem da API, configurar essa origem de desenvolvimento conscientemente em ALLOWED_ORIGINS; não há CORS aberto. O BFF do frontend atual não encaminha as novas rotas de plataforma.
+
+Exemplo de corpo de arquivo JSON normalizado para importação:
+
+```json
+{
+  "request_id":"22222222-2222-4222-8222-222222222222",
+  "authorized":true,
+  "authorization_reference":"Autorização de uso registrada pela administração da fonte.",
+  "redaction_terms":["Nome do participante","Nome da empresa de origem"],
+  "messages":[
+    {"role":"customer","text":"O que é metalon?"},
+    {"role":"agent","text":"É uma denominação comercial de tubos de aço de seção quadrada ou retangular. Verifique o catálogo técnico."}
+  ]
+}
+```
+
+Enviar com `--data-binary @arquivo.json`, Content-Type application/json e sessão de plataforma. Limites: 512 KiB de corpo real, 2–200 turnos, até 3.000 caracteres por turno. Papel customer/agent é explícito. `authorized` deve ser booleano true; referência e termos são entrada do operador. A verificação de autorização não é uma validação jurídica automática. IDs/hashes não substituem a revisão. Repetir request_id com mesmo corpo/operador retorna a mesma importação; corpo diferente retorna 409. Não publicar automaticamente os candidatos. O retorno contém `requires_manual_review:true`, método determinístico, contagem de redações e `truncated` nos turnos limitados após a redação.
+
+Conteúdo manual: `{"title":"O que é metalon?","body":"Texto técnico revisado e baseado em fonte autorizada.","kind":"technical_document","category":"Tubos","source_reference":"Catálogo técnico autorizado"}`. Tipos: faq, technical_document, synonym, approved_answer. `commercial_policy`, company_id e outros campos extras são rejeitados. Preços/estoque oficiais permanecem no ERP da distribuidora; regras comerciais privadas não pertencem à biblioteca compartilhada.
+
+PATCH acrescenta `version` do detalhe atual; cria nova revisão sem substituir a publicada anterior. Publicação: `{"version":1,"privacy_checked":true,"source_rights_confirmed":true,"commercial_isolation_checked":true,"review_note":"Conteúdo revisado, anonimizado, genérico e tecnicamente conferido."}`. As três confirmações booleanas são obrigatórias. Conflitos retornam 409; dados/contatos ou condições comerciais detectadas retornam 422. Desativação: `{"version":2}`. Cada ação avança a versão de controle, separada do número da revisão.
+
+Clientes não recebem fontes importadas, textos brutos, dados do administrador ou revisão em rascunho; recebem título/corpo/categoria/fonte/revisão publicada com scope=platform. Não há envio WhatsApp, coleta automática de tenants, chamada OpenAI ou treinamento de modelo nestas APIs.

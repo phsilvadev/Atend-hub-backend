@@ -54,7 +54,8 @@ Este arquivo acompanha a plataforma completa; uma tela demonstrativa não compro
 - [x] Validar origem contra CSRF, entradas, erros sem senha e rate limiting persistido na autenticação.
 - [x] Auditar cadastro, login/logout e alterações administrativas já implementadas.
 - [x] Criar e executar testes de autenticação, permissões e isolamento com API real e SQLite temporário.
-- [ ] Implementar superadministrador de plataforma sem expor cadastro público privilegiado.
+- [x] Criar identidade/sessão de superadministrador separadas, com provisionamento local por CLI e sem elevação pública de usuários de tenant.
+- [ ] Criar frontend próprio do superadministrador (login, Dashboard, gestão de conhecimento e importações).
 - [ ] Implementar múltiplos vínculos de empresa por usuário e seleção de empresa, se adotado.
 - [ ] Recuperação segura de senha com token temporário, envio de e-mail e revogação — deixada para o final.
 - [ ] Convites por e-mail e verificação de endereço de e-mail.
@@ -170,20 +171,27 @@ Núcleo local da central concluído e validado: cliente mínimo, conversa, respo
 
 ## FASE 08 — BASE DE CONHECIMENTO
 
-- [ ] Criar documentos técnicos, categorias, versões e identificação de empresa.
-- [ ] Importar catálogos e documentos com validação de arquivos.
-- [ ] Cadastrar perguntas frequentes, políticas comerciais e respostas aprovadas.
-- [ ] Cadastrar sinônimos e termos técnicos.
+- [x] Criar biblioteca global de textos técnicos/FAQ/sinônimos/respostas aprovadas, com categoria, fonte e revisões imutáveis.
+- [ ] Criar biblioteca privada por empresa e integração do editor do cliente.
+- [x] Receber arquivos JSON normalizados autorizados, com limite real de corpo/turnos e validação.
+- [ ] Implementar parsers nativos TXT/ZIP do WhatsApp e PDF/catálogos, processamento assíncrono e validação de arquivos.
+- [x] Cadastrar perguntas frequentes e respostas aprovadas genéricas da plataforma.
+- [ ] Cadastrar políticas comerciais privadas de cada distribuidora, sem publicação na base comum.
+- [x] Permitir conteúdo do tipo sinônimo/termo técnico na biblioteca comum (conteúdo real depende de curadoria).
 - [ ] Preparar conteúdo revisado: metalon, tubos industriais/galvanizados, vergalhões, chapas, cantoneiras e perfis U/I/H.
 - [ ] Preparar conteúdo revisado: vigas, telhas, barras chatas/redondas e aços carbono/galvanizado/inoxidável.
 - [ ] Validar conteúdo de bitolas, pesos teóricos, comprimentos, conversões e aplicações.
-- [ ] Implementar aprovação humana, ativação/desativação e versionamento.
+- [x] Exigir confirmação humana explícita de privacidade, direitos de uso e isolamento comercial; publicar/desativar e manter versões aprovadas da base comum.
+- [ ] Aplicar revisão/versionamento na futura biblioteca privada por empresa.
 - [ ] Configurar pgvector, embeddings e busca semântica com isolamento por empresa.
-- [ ] Registrar fontes e documentos utilizados nas respostas.
-- [ ] Importar histórico WhatsApp somente de fontes autorizadas.
-- [ ] Remover/proteger dados pessoais e extrair perguntas/termos recorrentes.
-- [ ] Revisar conteúdo extraído antes de publicar; não confiar automaticamente no histórico.
-- [ ] Testar recuperação, citações, permissões e conteúdo malicioso.
+- [x] Persistir fonte e revisão do conteúdo aprovado e expor somente a versão publicada na consulta autenticada.
+- [ ] Registrar efetivamente fontes usadas em cada resposta da IA, após integração com o motor.
+- [x] Importar conversas autorizadas por arquivo JSON no superadministrador, sem conectar WhatsApp da plataforma ou copiar automaticamente conversas de tenants.
+- [x] Redigir identificadores conhecidos/termos fornecidos e gerar pares adjacentes customer/agent como rascunhos; descartar condições comerciais particulares detectadas.
+- [ ] Evoluir reconhecimento de dados pessoais e extração semântica assistida; revisão humana permanece obrigatória.
+- [x] Manter todo conteúdo extraído em rascunho até revisão/publicação; edição pendente não substitui a versão aprovada anterior.
+- [x] Testar consulta textual publicada, permissões, redação, idempotência, concorrência por versão, revisão e regressões de autenticação.
+- [ ] Testar busca semântica, citações reais da IA e resistência a prompt injection no motor, quando implementados.
 
 ## FASE 09 — DASHBOARD COM DADOS REAIS
 
@@ -293,3 +301,11 @@ Validação da Fase 02 manual: 86 testes Vitest, 44 Pytest e 9 E2E aprovados, al
 - [x] Atualizar documentação/checklist e capturar prints desktop/mobile.
 
 Validação da conclusão do núcleo local: 88 testes Vitest, 49 testes Pytest e 10 E2E aprovados, com build/lint. Inclui disputa de atribuição e mensagens/leituras concorrentes por threads reais, cursor monotônico, duas sessões no navegador, rascunho durante atualização e limpeza do painel após transferência. Migration downgrade/upgrade preservou mensagens e preencheu métricas; aplicada no SQLite local. Prints de contadores e histórico desktop/mobile gerados com dados de teste. Fase 02 não é marcada integralmente concluída enquanto as dependências externas listadas permanecerem abertas. Nenhum Docker executado.
+
+### Base comum do setor — superadministrador
+- [x] Separar autenticação de plataforma das contas de empresas, sem elevação pública.
+- [x] Importar arquivos JSON autorizados, remover identificadores conhecidos e gerar rascunhos revisáveis; sem conectar WhatsApp da plataforma.
+- [x] Criar base comum versionada com revisão, publicação/desativação e consulta somente de conteúdos publicados pelas empresas.
+- [x] Validar autorização, privacidade, idempotência, versões e regressões; documentar a divisão cliente/plataforma.
+
+Decisão adotada: WhatsApp operacional e ERP pertencem ao painel de cada distribuidora. A plataforma importa somente arquivos autorizados para curadoria da base comum. Não há coleta automática de conversas, conexão WhatsApp global, treinamento automático ou consumo OpenAI implementado nesta etapa. Biblioteca privada de empresa, busca semântica e frontend do superadministrador continuam pendentes. Validação: 59 testes Pytest e 5 E2E de autenticação/isolamento do frontend aprovados; grupo de conhecimento revalidado após ajustes de redação e publicação. Migration aplicada ao SQLite local sem criar conta real ou conteúdo fictício. Documentação do Dashboard proposta, não implementada. Nenhum Docker executado.
