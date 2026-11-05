@@ -348,3 +348,10 @@ Evidência adicional: E2E opt-in com gateway Baileys real e consulta de versão 
 - [x] Inicializar chave local de desenvolvimento sem imprimir/commitar; aplicar migration aditiva sem dados comerciais fictícios.
 
 Validação: 82 Pytest, 95 Vitest, lint/typecheck/build e 3 E2E aprovados. Cobertura: criptografia/contexto/nonce/tampering/chave incorreta, token nunca retornado ou logado, token inválido/expirado/conta ou app incorreto, permissões, empresa alheia, versão obsoleta, acesso revogado durante validação, remoção de ciphertext e inicialização segura da chave. HTTP Graph simulado em testes; fluxo visual usa fixture de contrato e não representa conta real. E2E cobre campos password, limpeza do token/PIN, expansão a 960px, confirmações de registro/inscrição e remoção. Prints desktop/mobile antes/depois gerados. Conta Meta, registro real, inscrição real e recebimento oficial real permanecem bloqueados por ausência de credenciais/conta/autorização externa. Docker não executado.
+
+### GestãoClick — cadastro essencial
+- [x] Cadastrar/editar/remover URL e par de tokens criptografados por empresa, sem chamadas ao ERP.
+- [x] Integrar card/aside do cliente, validar isolamento, testes e prints.
+- [ ] Validar acesso ao ERP e sincronizações após OpenAPI da conta.
+
+Validação direcionada desta entrega: 3 Pytest de cadastro/edição/remoção, versão, criptografia e isolamento/contexto, papel e URLs inválidas; 2 Vitest do contrato; 1 E2E com API real/SQLite temporário e dados fictícios aprovado, além de lint/typecheck/build. Migration aplicada ao SQLite local sem inserir credenciais de demonstração. Prints desktop/mobile gerados. Sem chamadas GestãoClick/OpenAI, sincronização ou Docker. Status limita-se a credenciais cadastradas; OpenAPI, validação real e seleção de loja seguem pendentes.

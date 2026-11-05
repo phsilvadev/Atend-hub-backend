@@ -177,3 +177,11 @@ A CLI não sobrescreve chave existente e é bloqueada em produção. Não copie 
 O PIN e o registro/inscrição são operações explícitas com confirmação, nunca efeitos colaterais do salvamento. Tokens expirados/revogados exigem atualização e nova validação; não há renovação automática. Envio de mensagens, janelas de atendimento, templates e cobrança continuam nas fases seguintes.
 
 Documentação consultada: [coleção oficial Meta — WhatsApp Cloud API](https://www.postman.com/meta/whatsapp-business-platform/documentation/wlk6lh4/whatsapp-cloud-api), endpoints phone_numbers, debug_token, subscribed_apps e register. Graph API fixada em v25.0 (configurável por ambiente); host fixo graph.facebook.com, sem redirects e sem seguir URLs de paginação externas. As chamadas são verificadas em testes com transport HTTP simulado; validação de conta/token real e configuração na Meta permanecem bloqueadas pela ausência de credenciais reais.
+
+## GestãoClick — cadastro essencial (sem transporte ERP)
+
+O card GestãoClick em Integrações permite ao admin cadastrar, editar e remover endereço base HTTPS (`/api` ou `/v1`), Access Token e Secret Access Token. Este recorte **não valida acesso ao ERP, não chama endpoints externos e não sincroniza dados**. O status é `Credenciais cadastradas`, nunca Conectado.
+
+O par de credenciais é cifrado com AES-256-GCM, nonce aleatório e contexto próprio GestãoClick/empresa/URL, usando a chave de servidor já existente `WHATSAPP_CREDENTIAL_KEY`. A chave continua fora do SQL. Inicialize-a com `python -m app.cli.integration_key` em desenvolvimento; em produção use um gerenciador de segredos e HTTPS. Os campos nunca retornam da API. Campo omitido mantém seu valor salvo; trocar a URL exige os dois tokens novos. Remover apaga o ciphertext, não revoga a chave no ERP.
+
+Aplicar migrations com `alembic upgrade head`. Teste direcionado: `pytest -q tests/test_gestaoclick.py`. A validação do servidor/conta, proteção de resolução DNS/SSRF para futuras chamadas, seleção de loja, limites de acesso e sincronização dependem do OpenAPI da conta e ficam pendentes. A URL hoje tem apenas validação de formato; nenhuma conexão é feita para ela. Não foram inseridas credenciais fictícias no banco local: dados fictícios são usados apenas em testes temporários.

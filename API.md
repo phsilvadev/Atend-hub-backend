@@ -270,3 +270,10 @@ Rotas exclusivas de admin da empresa autenticada, com CSRF/Origin em POST, activ
 - `POST /api/v1/integrations/whatsapp-official/disconnect`: `{version}`. Apaga ciphertext, desativa roteamento local, preserva histórico. Não revoga token remoto nem desinscreve WABA compartilhada.
 
 Campos de diagnóstico: aplicativo confirmado, permissões de gestão/messaging confirmadas, expiração, status do número, verificação de código, plataforma e aplicativo inscrito. Eles representam a última consulta, não monitoramento contínuo. GET não dispara consulta externa; Validar e salvar vazio revalida o token protegido. A chave de criptografia, App Secret, PIN e verify token não aparecem nas respostas.
+
+## GestãoClick — configuração por empresa
+
+Admin autenticado de tenant ativo/trial válido, Origin em POST e versionamento. Sem acesso externo ao ERP.
+- `GET /api/v1/integrations/gestaoclick`: `{company_id,enabled,base_url,has_credentials,status,version,updated_at}`. Status not_configured/credentials_saved. Sem tokens/ciphertext.
+- `POST /api/v1/integrations/gestaoclick`: `{version,base_url,access_token?,secret_access_token?}`. Versão inicial 0. HTTPS com host de domínio e caminho /api ou /v1, sem userinfo/query/fragment/porta não padrão/IP literal. Tokens ASCII visível até 4096 caracteres, opcionais somente para reutilizar valores com mesma URL. Nenhum company_id é aceito no corpo. 409 versão obsoleta, 422 dados ausentes/inválidos, 503 chave de criptografia indisponível.
+- `POST /api/v1/integrations/gestaoclick/remove`: `{version}`. Apaga credenciais e URL locais e incrementa versão; preserva controle de concorrência. Não revoga credenciais no GestãoClick.
