@@ -67,3 +67,22 @@ class IdentityOutput(BaseModel):
     user: UserOutput
     company: CompanyOutput
     trial_expired: bool
+
+class UserUpdate(StrictInput):
+    name: str = Field(min_length=2, max_length=120)
+    email: EmailStr
+    role: Literal['admin', 'supervisor', 'seller', 'operator']
+    active: bool
+
+    @field_validator('email', mode='before')
+    @classmethod
+    def normalize_email(cls, value):
+        return value.strip().lower() if isinstance(value, str) else value
+
+    @field_validator('name')
+    @classmethod
+    def clean_name(cls, value):
+        value = value.strip()
+        if len(value) < 2:
+            raise ValueError('Nome inválido')
+        return value

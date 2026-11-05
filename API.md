@@ -66,7 +66,7 @@ Logout: `POST /api/v1/auth/logout`, corpo `{}`. Trial vencido ainda permite me/l
 {"name":"Vendedor","email":"vendedor@example.com","password":"uma-senha-forte","role":"seller"}
 ```
 
-Perfis disponíveis: `admin`, `supervisor`, `seller`, `operator`. Somente `admin` pode listar/criar/consultar usuários. `company_id`, `active` e outros campos extras não são aceitos. Senhas e hashes nunca são devolvidos. Não há perfil público `superadmin`.
+Perfis disponíveis: `admin`, `supervisor`, `seller`, `operator`. Somente `admin` pode listar/criar/consultar/editar usuários. `company_id`, `active` e outros campos extras não são aceitos. Senhas e hashes nunca são devolvidos. Não há perfil público `superadmin`.
 
 ## Erros
 
@@ -95,3 +95,9 @@ curl -b /tmp/atendehub-cookie.txt http://localhost:3000/api/v1/auth/me
 ```
 
 Proteja/remova o arquivo temporário de cookies após usar. Não compartilhe cookies ou registre credenciais em logs.
+
+## Edição de usuário
+
+`PATCH /api/v1/users/{user_id}` — sessão de administrador e trial válido. Corpo completo: `{"name":"Ana Souza","email":"ana@example.com","role":"seller","active":true}`. Retorna `UserOutput` (200), sem senha. Campos extras, inclusive `company_id` e `password`, são rejeitados (422).
+
+O usuário é buscado exclusivamente na empresa da sessão: outro tenant ou ID inexistente retorna 404. E-mail já utilizado retorna 409 com rollback. Administradores não podem desativar ou rebaixar a própria conta (409). Alterações de e-mail, perfil ou ativação revogam as sessões do usuário; exige novo login. Operação registrada como `user.updated`, sem credenciais na auditoria. Origem da requisição validada contra CSRF.

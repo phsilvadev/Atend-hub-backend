@@ -19,3 +19,8 @@
 - [ ] Módulos de atendimentos, WhatsApp, IA, ERP, clientes, produtos, orçamentos, conhecimento, dashboard real e relatórios.
 
 Nenhum Docker executado. SQLite é exclusivo de desenvolvimento/testes. Não há credenciais externas ou usuários reais neste repositório.
+
+## Edição de usuários
+- [x] Editar usuários com isolamento por empresa e permissões, formulário em modal (padrão), tela cheia ou painel direito; validar e gerar prints.
+
+Validação: 72 testes Vitest, 22 Pytest, build e lint aprovados. E2E validou salvamento real, persistência, contagem, troca de formatos sem perda de dados, dimensões desktop/mobile e preferência no navegador. Prints dos três modos gerados. Nenhum Docker executado.

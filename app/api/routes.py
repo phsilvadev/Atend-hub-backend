@@ -5,8 +5,8 @@ from app.api.dependencies import current_context, admin_context, Context
 from app.core.config import get_settings, Settings, COOKIE_NAME
 from app.core.database import get_db
 from app.core.security import now, throttle, passwords
-from app.models.auth import User
-from app.schemas.auth import LoginInput, RegisterInput, UserInput, UserOutput, IdentityOutput
+from app.models.auth import User, Session
+from app.schemas.auth import LoginInput, RegisterInput, UserInput, UserUpdate, UserOutput, IdentityOutput
 from app.services import auth
 from app.repositories.users import in_company
 
@@ -66,6 +66,27 @@ def create_user(data: UserInput, context: Context = Depends(admin_context), db: 
     try:
         db.flush()
         auth.audit(db, context.user, 'user.created')
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(409, 'E-mail indisponível.')
+    return user
+
+@router.patch('/users/{user_id}', response_model=UserOutput)
+def update_user(user_id: str, data: UserUpdate, context: Context = Depends(admin_context), db: DBSession = Depends(get_db)):
+    user = in_company(db, context.company.id, user_id)
+    if not user:
+        raise HTTPException(404, 'Usuário não encontrado.')
+    if user.id == context.user.id and (not data.active or data.role != 'admin'):
+        raise HTTPException(409, 'Você não pode desativar ou remover seu próprio perfil de administrador.')
+    revoke = user.role != data.role or user.email != str(data.email) or user.active != data.active
+    user.name, user.email, user.role, user.active = data.name, str(data.email), data.role, data.active
+    try:
+        db.flush()
+        if revoke:
+            from sqlalchemy import update
+            db.execute(update(Session).where(Session.user_id == user.id, Session.company_id == context.company.id).values(revoked=True))
+        auth.audit(db, context.user, 'user.updated')
         db.commit()
     except IntegrityError:
         db.rollback()

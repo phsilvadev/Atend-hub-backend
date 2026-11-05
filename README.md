@@ -67,3 +67,6 @@ Recuperação por e-mail, WhatsApp, GestãoClick, OpenAI, cobrança e módulos c
 Consulte [API.md](API.md), [ARCHITECTURE.md](ARCHITECTURE.md) e [CHECKLIST.md](CHECKLIST.md).
 
 Código inicial extraído de `backend/` do commit `c5c3276` do projeto AtendeHub, preservando o projeto original.
+
+### Edição de equipe
+Administradores podem editar nome, e-mail, perfil e ativação de usuários da própria empresa via `PATCH /api/v1/users/{user_id}`. Mudanças de acesso revogam as sessões; não é permitido desativar ou rebaixar a própria conta. Consulte API.md.
