@@ -4,6 +4,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from app.api.routes import router
+from app.api.whatsapp import router as whatsapp_router, WEBHOOK_PATH
 from app.api.conversations import router as conversations_router
 from app.api.platform_companies import router as companies_router
 from app.api.knowledge import router as platform_router, public_router as knowledge_router
@@ -11,6 +12,7 @@ from app.core.config import get_settings
 
 app = FastAPI(title='AtendeHub Auth API', version='0.1.0')
 app.include_router(router)
+app.include_router(whatsapp_router)
 app.include_router(conversations_router)
 app.include_router(platform_router)
 app.include_router(knowledge_router)
@@ -19,7 +21,7 @@ logger = logging.getLogger('atendehub')
 
 @app.middleware('http')
 async def security(request: Request, call_next):
-    if request.method in {'POST', 'PUT', 'PATCH', 'DELETE'}:
+    if request.method in {'POST', 'PUT', 'PATCH', 'DELETE'} and not (request.method == 'POST' and request.url.path == WEBHOOK_PATH):
         origin = request.headers.get('origin')
         if not origin and request.headers.get('referer'):
             parsed = urlsplit(request.headers['referer'])

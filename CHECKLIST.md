@@ -67,7 +67,7 @@ Núcleo local da central concluído e validado: cliente mínimo, conversa, respo
 
 - [x] Criar entidades de conversas e mensagens com company_id e índices.
 - [x] Associar conversa ao cliente e registrar origem/canal.
-- [ ] Implementar criação automática de atendimento a partir de mensagem recebida.
+- [x] Implementar criação automática de atendimento a partir de texto WhatsApp recebido e autenticado.
 - [x] Criar endpoints de listagem, detalhe e filtros da central.
 - [x] Implementar estados manuais: novo, humano, aguardando cliente, orçamento, convertido e encerrado.
 - [ ] Ativar estado/execução de atendimento por IA e transições automáticas (enum reservado, uso bloqueado nesta etapa).
@@ -94,15 +94,16 @@ Núcleo local da central concluído e validado: cliente mínimo, conversa, respo
 
 - [ ] Validar documentação oficial e preparar credenciais por empresa — depende de conta Meta.
 - [ ] Armazenar credenciais criptografadas ou em gerenciador de segredos.
-- [ ] Implementar validação inicial e autenticação/assinatura dos webhooks.
-- [ ] Receber eventos e mensagens de texto pela API oficial.
-- [ ] Registrar IDs externos únicos e deduplicar webhooks.
+- [x] Implementar validação inicial e autenticação/assinatura dos webhooks.
+- [x] Receber mensagens de texto no formato oficial com assinatura; ativação da conta Meta real permanece bloqueada.
+- [x] Registrar IDs externos únicos e deduplicar webhooks.
 - [ ] Enviar texto e registrar entrega, leitura e falhas.
 - [ ] Respeitar janela de atendimento e templates aprovados.
 - [ ] Configurar Redis e fila de processamento assíncrono adequada.
 - [ ] Implementar retries com backoff, reprocessamento e tratamento de falhas.
 - [ ] Preparar extensões para documentos, imagens e áudios.
-- [ ] Conectar recebimento/envio à central de atendimentos.
+- [x] Conectar recebimento de texto à central de atendimentos.
+- [ ] Conectar envio real e status de entrega à central.
 - [ ] Testar assinatura, duplicidade, ordenação, retries e falhas externas.
 
 ## FASE 04 — MOTOR DE INTELIGÊNCIA ARTIFICIAL
@@ -316,3 +317,9 @@ Decisão adotada: WhatsApp operacional e ERP pertencem ao painel de cada distrib
 - [x] Validar isolamento de sessão de plataforma e ausência de operações de cadastro/edição na entrega.
 
 Superadmin frontend entregue em repositório separado super-admin-atendehub: Next.js 16/React 19, cookies de plataforma HttpOnly com BFF restrito, middleware/proxy e validação no servidor, listagem somente leitura com busca/status/paginação e estados de carregamento/erro/vazio. Validação: 60 testes backend, 11 Vitest do novo frontend, build/lint e E2E real (sessões de plataforma/tenant, origem, expiração/revogação, filtros e mobile) aprovados. Telas restantes preservadas como placeholders; não há cadastro/edição de empresas ou métricas fictícias. Atualização não implica implantação pública; branches development, sem Docker.
+
+### Execução atual — WhatsApp de entrada
+- [x] Validar assinatura e recebimento atômico de texto, deduplicar e integrar à central.
+- [ ] Validar conta Meta real e callback público HTTPS (depende de credenciais/hospedagem).
+
+Validação desta etapa: 66 Pytest, 89 Vitest, lint/build do cliente e 1 E2E real de webhook→API→central aprovados. Inclui replay concorrente, rollback/retry, assinatura, isolamento WABA/número/empresa e empresa desativada. Print gerado com SQLite temporário e dados fictícios de teste. Recebimento síncrono, sem fila, envio, status de entrega ou IA; não marcar Fase 03 completa. Segredos do app vêm do ambiente; gestão de credenciais por tenant e tela de conexão ficam pendentes. Meta real/HTTPS ainda não validados. Nenhum Docker executado.

@@ -107,3 +107,24 @@ Executar `.venv/bin/alembic upgrade head` e provisionar a conta escolhida pelo o
 
 ### Frontend próprio do superadministrador
 O projeto separado `/workspace/super-admin-atendehub` foi migrado para Next.js e integra login de plataforma e listagem somente leitura em `GET /api/v1/platform/companies`. Não utiliza o login das distribuidoras. Origem local padrão: http://localhost:3001 (adicionada aos exemplos/defaults de desenvolvimento, preservando localhost:3000). Em produção, configurar origens HTTPS explícitas como antes. Cadastro/edição de empresas e integração dos demais módulos do superadmin permanecem pendentes.
+
+## WhatsApp — recebimento de texto (Fase 03 parcial)
+
+Configure `WHATSAPP_APP_SECRET` e `WHATSAPP_VERIFY_TOKEN` no ambiente do servidor/gerenciador de segredos. Nenhum token de acesso Meta é necessário para apenas validar/receber webhooks. O segredo é do app Meta SaaS; cada número operacional pertence a uma distribuidora. Não há WhatsApp global para atendimento da plataforma.
+
+```bash
+.venv/bin/alembic upgrade head
+.venv/bin/python -m app.cli.whatsapp_number --company-id UUID_DA_EMPRESA --phone-number-id ID_DO_NUMERO_META --waba-id ID_DA_CONTA_WHATSAPP
+```
+
+Execute o vínculo somente após verificar a titularidade/autorização do número no app Meta. A CLI é administrativa, idempotente e recusa transferências de um número entre empresas. Não existe endpoint público para escolher tenant ou vincular números arbitrários. A tela de conexão no painel do cliente ainda está pendente.
+
+No painel Meta configure o callback `https://SEU_BACKEND/api/v1/webhooks/whatsapp`, o verify token e a assinatura do campo `messages` para as contas autorizadas. Exponha somente via HTTPS e aplique limite de requisições na borda. O webhook valida `X-Hub-Signature-256` contra os bytes originais antes de interpretar JSON. Segredos não são persistidos no SQLite nem enviados ao frontend.
+
+Texto recebido cria cliente por telefone e atendimento WhatsApp `new`, ou reutiliza o atendimento WhatsApp aberto. Fechado/convertido gera novo atendimento. Preserva responsável/status humano existentes. Empresa inativa/trial vencido e vínculo desativado não recebem novos registros. WABA e phone_number_id precisam corresponder ao vínculo confiável. IDs externos ficam vinculados às mensagens e deduplicados por número, inclusive em reentregas concorrentes.
+
+Neste recorte, o processamento é **síncrono e transacional**, com retorno 200 somente após commit. Falha de banco retorna erro para retry da Meta; rollback impede gravação parcial. Não há Redis/Celery, retentativas próprias ou fila persistente nesta etapa. Eventos de status e mídias não são processados; a Meta recebe 200 para esses tipos sem registro. Ordenação do histórico usa recebimento/ID local; timestamp externo fica no horário da mensagem. Nenhuma resposta é enviada e nenhuma IA é executada; mensagens manuais continuam sendo registros locais.
+
+Sem credenciais/conta Meta e callback público, a ativação externa permanece pendente. Os testes usam apenas app/números fictícios em SQLite temporário. Nenhum Docker foi executado.
+
+Referência oficial consultada: [webhooks — documentação hospedada pela Meta](https://whatsapp.github.io/WhatsApp-Nodejs-SDK/api-reference/webhooks/start/). O SDK está arquivado e não é utilizado; a página confirma challenge e assinatura. A documentação atual em developers.facebook.com retornou HTTP 429 durante a consulta; revalidar onboarding/conta e configurações atuais antes da ativação real. Não há chamadas de envio nem endpoints Graph inventados.

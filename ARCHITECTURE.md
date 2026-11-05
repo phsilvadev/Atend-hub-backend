@@ -43,3 +43,9 @@ A importação limita o corpo antes do parsing, exige fonte autorizada, redige p
 
 ## Consulta global de empresas pelo superadmin
 O frontend separado super-admin-atendehub usa Next.js e sessão de plataforma validada no middleware/proxy, layout e API. O BFF aceita apenas autenticação e GET companies; ignora cookies de tenant e reescreve o Path do cookie próprio para proteger páginas. A API permite ler metadados de empresas (com auditoria), sem conceder sessão de tenant, acesso a conversas, edição ou impersonação. A listagem é paginada e possui filtros reais. O painel de conhecimento e demais módulos permanecem pendentes no novo frontend.
+
+## WhatsApp inbound — recorte da Fase 03
+
+API `app/api/whatsapp.py` autentica evento via HMAC antes do parser e chama serviço `app/services/whatsapp.py` em threadpool. Única exceção ao CSRF por Origin é o POST do webhook, protegido por assinatura. Configuração SecretStr vem do ambiente do servidor. O app Meta é da plataforma SaaS; `whatsapp_numbers` vincula WABA/phone_number_id a cada tenant e não armazena segredo. A CLI administrativa não permite transferir vínculo entre tenants.
+
+Processamento local síncrono, transação única por webhook. Atualização atômica do vínculo serializa concorrência por número no SQLite e PostgreSQL; recibo composto número/ID externo deduplica e referencia a mensagem. Criar cliente/atendimento/mensagem/recibo é atômico; falhas retornam erro e permitem retry externo. Atualização de conversa incrementa versão para invalidar edições humanas obsoletas. Nunca atribui IA nem altera responsável humano. Futuro worker/fila e transporte de saída ficam em etapa separada; PostgreSQL não foi validado nesta entrega.

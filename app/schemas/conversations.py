@@ -74,7 +74,7 @@ class ConversationOutput(BaseModel):
     assigned_user: PersonOutput | None
     subject: str
     status: Status
-    channel: Literal['manual']
+    channel: Literal['manual','whatsapp']
     created_at: int
     updated_at: int
     closed_at: int | None
@@ -93,7 +93,7 @@ class MessageOutput(BaseModel):
     company_id: str
     conversation_id: str
     actor: PersonOutput | None
-    kind: Literal['system','customer_record','manual_outbound','internal_note']
+    kind: Literal['system','customer_record','whatsapp_inbound','manual_outbound','internal_note']
     body: str
     created_at: int
 

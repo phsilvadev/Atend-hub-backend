@@ -241,3 +241,10 @@ Clientes não recebem fontes importadas, textos brutos, dados do administrador o
 Retorno `{items,total,summary}`: items contém id/nome/razão/CNPJ/e-mail comercial, primeiro administrador ativo em ordem alfabética, código/nome do plano, status, registered_at e trial_ends_at (nulo em plano fora do trial). registered_at utiliza o trial_started_at salvo no cadastro inicial, antes de existir renovação de trial. Summary traz total e contagens de cada status globais; total refere-se ao resultado filtrado. Não há preço ou informação financeira fabricada. Senhas/sessões nunca entram no retorno.
 
 Operação auditada como platform.companies.list. Nenhum POST/PATCH para criação/edição foi disponibilizado. Frontend próprio em super-admin-atendehub, Next.js, com BFF restrito, middleware/proxy e proteção adicional no servidor. A origem local localhost:3001 precisa estar configurada explicitamente no backend.
+
+## WhatsApp de entrada
+
+- `GET /api/v1/webhooks/whatsapp?hub.mode=subscribe&hub.verify_token=...&hub.challenge=...`: retorna challenge em texto; 403 token inválido, 503 ausente.
+- `POST /api/v1/webhooks/whatsapp`: JSON da Meta assinado por HMAC-SHA256 dos bytes originais em `X-Hub-Signature-256: sha256=...`. Limite real 1 MiB; 401 assinatura inválida, 400 estrutura inválida, 413 limite, 503 segredo ausente, 200 após commit ou evento não suportado. Única exceção POST à validação de Origin; demais endpoints preservam CSRF. Sem cookies de autenticação exigidos no webhook.
+- Somente `object=whatsapp_business_account`, `changes[].field=messages`, tipo `text`, remetente numérico de 10–15 dígitos e body 1–4096 são importados. IDs externos até 200 caracteres; WABA/número devem ter vínculo cadastrado por CLI. Eventos sem vínculo, tipo não suportado e empresas bloqueadas são ignorados.
+- `GET /api/v1/conversations` e histórico existentes incluem `channel=whatsapp` e `kind=whatsapp_inbound`; seguem permissões e isolamento já existentes. Não há resposta automática ou envio real. IDs externos permanecem no banco, associados ao ID da mensagem local.
