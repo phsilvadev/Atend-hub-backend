@@ -233,3 +233,11 @@ Conteúdo manual: `{"title":"O que é metalon?","body":"Texto técnico revisado 
 PATCH acrescenta `version` do detalhe atual; cria nova revisão sem substituir a publicada anterior. Publicação: `{"version":1,"privacy_checked":true,"source_rights_confirmed":true,"commercial_isolation_checked":true,"review_note":"Conteúdo revisado, anonimizado, genérico e tecnicamente conferido."}`. As três confirmações booleanas são obrigatórias. Conflitos retornam 409; dados/contatos ou condições comerciais detectadas retornam 422. Desativação: `{"version":2}`. Cada ação avança a versão de controle, separada do número da revisão.
 
 Clientes não recebem fontes importadas, textos brutos, dados do administrador ou revisão em rascunho; recebem título/corpo/categoria/fonte/revisão publicada com scope=platform. Não há envio WhatsApp, coleta automática de tenants, chamada OpenAI ou treinamento de modelo nestas APIs.
+
+## Superadmin — listagem de empresas
+
+`GET /api/v1/platform/companies?q=&status=all&offset=0&limit=20` — somente sessão de plataforma válida. Sessão de distribuidora não autoriza. Filtros status: all, active (ativa fora do trial), trial, trial_expired e inactive. Busca nome, razão social, CNPJ sem/ com pontuação, e-mail comercial e e-mail de administrador. Offset >= 0; limite 1–100.
+
+Retorno `{items,total,summary}`: items contém id/nome/razão/CNPJ/e-mail comercial, primeiro administrador ativo em ordem alfabética, código/nome do plano, status, registered_at e trial_ends_at (nulo em plano fora do trial). registered_at utiliza o trial_started_at salvo no cadastro inicial, antes de existir renovação de trial. Summary traz total e contagens de cada status globais; total refere-se ao resultado filtrado. Não há preço ou informação financeira fabricada. Senhas/sessões nunca entram no retorno.
+
+Operação auditada como platform.companies.list. Nenhum POST/PATCH para criação/edição foi disponibilizado. Frontend próprio em super-admin-atendehub, Next.js, com BFF restrito, middleware/proxy e proteção adicional no servidor. A origem local localhost:3001 precisa estar configurada explicitamente no backend.

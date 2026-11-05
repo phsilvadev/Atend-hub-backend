@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file='.env', extra='ignore')
     app_env: Literal['development', 'test', 'production'] = 'development'
     database_url: str = 'sqlite:///./data/atendehub.db'
-    allowed_origins: list[str] = ['http://localhost:3000', 'http://127.0.0.1:3000']
+    allowed_origins: list[str] = ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001']
     cookie_secure: bool = False
     session_hours: int = Field(default=12, ge=1, le=168)
     remember_days: int = Field(default=7, ge=1, le=30)

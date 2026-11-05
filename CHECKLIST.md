@@ -55,7 +55,8 @@ Este arquivo acompanha a plataforma completa; uma tela demonstrativa não compro
 - [x] Auditar cadastro, login/logout e alterações administrativas já implementadas.
 - [x] Criar e executar testes de autenticação, permissões e isolamento com API real e SQLite temporário.
 - [x] Criar identidade/sessão de superadministrador separadas, com provisionamento local por CLI e sem elevação pública de usuários de tenant.
-- [ ] Criar frontend próprio do superadministrador (login, Dashboard, gestão de conhecimento e importações).
+- [x] Criar frontend Next.js próprio do superadministrador com login, shell, proteção de rotas e listagem real de empresas.
+- [ ] Integrar indicadores do Dashboard, gestão de conhecimento/importações e demais módulos do frontend superadmin.
 - [ ] Implementar múltiplos vínculos de empresa por usuário e seleção de empresa, se adotado.
 - [ ] Recuperação segura de senha com token temporário, envio de e-mail e revogação — deixada para o final.
 - [ ] Convites por e-mail e verificação de endereço de e-mail.
@@ -309,3 +310,9 @@ Validação da conclusão do núcleo local: 88 testes Vitest, 49 testes Pytest e
 - [x] Validar autorização, privacidade, idempotência, versões e regressões; documentar a divisão cliente/plataforma.
 
 Decisão adotada: WhatsApp operacional e ERP pertencem ao painel de cada distribuidora. A plataforma importa somente arquivos autorizados para curadoria da base comum. Não há coleta automática de conversas, conexão WhatsApp global, treinamento automático ou consumo OpenAI implementado nesta etapa. Biblioteca privada de empresa, busca semântica e frontend do superadministrador continuam pendentes. Validação: 59 testes Pytest e 5 E2E de autenticação/isolamento do frontend aprovados; grupo de conhecimento revalidado após ajustes de redação e publicação. Migration aplicada ao SQLite local sem criar conta real ou conteúdo fictício. Documentação do Dashboard proposta, não implementada. Nenhum Docker executado.
+
+### Superadmin Next.js e consulta de empresas
+- [x] Criar endpoint somente leitura de empresas com autenticação de plataforma, busca, filtros e paginação.
+- [x] Validar isolamento de sessão de plataforma e ausência de operações de cadastro/edição na entrega.
+
+Superadmin frontend entregue em repositório separado super-admin-atendehub: Next.js 16/React 19, cookies de plataforma HttpOnly com BFF restrito, middleware/proxy e validação no servidor, listagem somente leitura com busca/status/paginação e estados de carregamento/erro/vazio. Validação: 60 testes backend, 11 Vitest do novo frontend, build/lint e E2E real (sessões de plataforma/tenant, origem, expiração/revogação, filtros e mobile) aprovados. Telas restantes preservadas como placeholders; não há cadastro/edição de empresas ou métricas fictícias. Atualização não implica implantação pública; branches development, sem Docker.
