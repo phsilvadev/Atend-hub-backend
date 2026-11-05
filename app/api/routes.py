@@ -5,11 +5,12 @@ from app.api.dependencies import current_context, admin_context, active_tenant, 
 from app.core.config import get_settings, Settings, COOKIE_NAME
 from app.core.database import get_db
 from app.core.security import now, throttle, passwords
-from app.models.auth import User, Session
+from app.models.auth import User, Session, Plan
 from app.schemas.auth import LoginInput, RegisterInput, UserInput, UserUpdate, UserOutput, IdentityOutput
 from app.services import auth
 from app.repositories.users import in_company
 from app.schemas.company import CompanySettingsInput, CompanySettingsOutput
+from app.schemas.subscription import SubscriptionOutput
 from app.services import company as company_service
 
 router = APIRouter(prefix='/api/v1')
@@ -103,3 +104,29 @@ def company_settings(context: Context = Depends(active_tenant), db: DBSession = 
 @router.patch('/company/settings', response_model=CompanySettingsOutput)
 def save_company_settings(data: CompanySettingsInput, context: Context = Depends(admin_context), db: DBSession = Depends(get_db)):
     return company_service.save_settings(db, context, data)
+
+@router.get('/company/subscription', response_model=SubscriptionOutput)
+def company_subscription(context: Context = Depends(current_context), db: DBSession = Depends(get_db)):
+    from sqlalchemy import select, func
+    trial = context.company.plan == 'trial'
+    remaining = max(0, context.company.trial_ends_at - now()) if trial else None
+    plans = db.scalars(select(Plan).where(Plan.active.is_(True)).order_by(Plan.sort_order, Plan.code)).all()
+    current_plan = db.get(Plan, context.company.plan) if not trial else None
+    if get_settings().app_env == 'production':
+        plans = [plan for plan in plans if not plan.is_demo]
+        if current_plan is not None and current_plan.is_demo:
+            current_plan = None
+    return {
+        'company_id': context.company.id,
+        'plan_code': context.company.plan,
+        'plan_name': 'Teste gratuito' if trial else (current_plan.name if current_plan else context.company.plan),
+        'current_plan': current_plan,
+        'available_plans': plans,
+        'status': ('trial_expired' if remaining == 0 else 'trial_active') if trial else 'active',
+        'trial_started_at': context.company.trial_started_at if trial else None,
+        'trial_ends_at': context.company.trial_ends_at if trial else None,
+        'trial_days_remaining': (remaining + 86399) // 86400 if trial else None,
+        'total_users': db.scalar(select(func.count()).select_from(User).where(User.company_id == context.company.id)),
+        'active_users': db.scalar(select(func.count()).select_from(User).where(User.company_id == context.company.id, User.active.is_(True))),
+        'billing_enabled': False,
+    }

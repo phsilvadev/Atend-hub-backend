@@ -73,3 +73,17 @@ Administradores podem editar nome, e-mail, perfil e ativação de usuários da p
 
 ### Configurações da empresa
 Aplicar `.venv/bin/alembic upgrade head` antes de executar a API. A migration `20261105_company_profile` adiciona contato, endereço e horários sem modificar empresas existentes. Membros consultam o cadastro por `GET /api/v1/company/settings`; somente administradores alteram por `PATCH`, com auditoria e isolamento pelo tenant da sessão. Consulte API.md. Horários são apenas configuração nesta etapa; integrações continuam fora deste escopo.
+
+### Planos — catálogo demonstrativo no banco
+
+Aplicar migrations e, apenas no ambiente local de desenvolvimento, executar:
+
+```bash
+.venv/bin/alembic upgrade head
+.venv/bin/python -m app.seeds.plans
+```
+
+O seed idempotente insere três planos fictícios sem sobrescrever os já cadastrados. Ele recusa produção. A migration cria somente estrutura; não insere preços. A API `GET /api/v1/company/subscription` entrega o catálogo do banco e a situação real da empresa autenticada. O frontend mostra preços/limites fictícios identificados, skeleton, estado vazio e confirmação informativa. Nenhuma contratação, pagamento ou aplicação de limites é executada nesta etapa. Planos demonstrativos são filtrados em produção.
+
+### Planejamento completo
+O [CHECKLIST.md](CHECKLIST.md) agora cobre os 14 módulos do [prompt mestre](docs/PROMPT_MESTRE.md), organizados nas 12 fases originais e na fase adicional de planos SaaS. O [histórico](docs/DEVELOPMENT_HISTORY.md) preserva as entregas anteriores. SQLite, ausência de Docker e recuperação de senha ao final refletem decisões posteriores do usuário. O roadmap completo não significa que todos os módulos estejam implementados.

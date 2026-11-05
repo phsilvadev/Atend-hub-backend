@@ -64,3 +64,16 @@ class CompanyProfile(Base):
     state: Mapped[str] = mapped_column(String(2), default='')
     timezone: Mapped[str] = mapped_column(String(64), default='America/Sao_Paulo')
     business_hours: Mapped[dict] = mapped_column(JSON, default=dict)
+
+class Plan(Base):
+    __tablename__ = 'plans'
+    code: Mapped[str] = mapped_column(String(40), primary_key=True)
+    name: Mapped[str] = mapped_column(String(80))
+    description: Mapped[str] = mapped_column(String(240))
+    monthly_price_cents: Mapped[int] = mapped_column(Integer)
+    currency: Mapped[str] = mapped_column(String(3), default='BRL')
+    user_limit: Mapped[int] = mapped_column(Integer)
+    features: Mapped[list] = mapped_column(JSON)
+    sort_order: Mapped[int] = mapped_column(Integer, default=0)
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_demo: Mapped[bool] = mapped_column(Boolean, default=False)

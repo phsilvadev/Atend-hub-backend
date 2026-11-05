@@ -127,3 +127,13 @@ O usuário é buscado exclusivamente na empresa da sessão: outro tenant ou ID i
 CNPJ numérico ou alfanumérico validado pelos dígitos verificadores; CNPJ e CEP normalizados sem pontuação. Telefone de 10 a 15 dígitos, e-mail válido, UF brasileira e fuso IANA. Horários `HH:mm`, uma faixa por dia, com abertura anterior ao encerramento; dias inativos têm horários nulos. Não há suporte a virada de dia, intervalos de almoço ou feriados nesta etapa. Esses horários são configurações persistidas; não ativam automações de IA ou WhatsApp.
 
 Empresas existentes mantêm o nome e seus registros. Sem perfil cadastrado, os campos adicionais são vazios e todos os dias ficam sem atendimento configurado. O GET não cria registros. Aplicar `alembic upgrade head` antes de iniciar a API atualizada.
+
+## Planos e assinatura
+
+`GET /api/v1/company/subscription` — sessão autenticada de qualquer perfil. A empresa é extraída da sessão, sem aceitar tenant por parâmetro. Retorna `company_id`, `plan_code`, `plan_name`, `current_plan`, `status` (`trial_active`, `trial_expired`, `active`), datas de trial em segundos Unix, `trial_days_remaining` arredondado para cima, contagem real de usuários totais/ativos, `billing_enabled:false` e `available_plans` do banco ordenados por posição/código.
+
+Cada plano contém código, nome, descrição, `monthly_price_cents`, moeda BRL, `user_limit`, lista `features` e `is_demo`. O catálogo é global da plataforma; os dados de assinatura e usuários são isolados por empresa. Planos inativos não aparecem nas opções. Plano atual pode ser consultado mesmo após inativação do item de catálogo. Em produção, itens `is_demo` não são expostos como catálogo nem detalhes do plano atual. Sem itens no banco, a resposta contém catálogo vazio; o frontend não cria opções locais.
+
+A consulta permanece acessível na API após expirar o trial, sem liberar módulos operacionais. O guard atual do workspace ainda bloqueia entrada após expiração; uma página de contratação fora do workspace segue pendente. Não há endpoint público para alterar plano, renovação, cobrança ou limites. Datas de cobrança não são fabricadas.
+
+Seed demonstrativo explícito: `python -m app.seeds.plans`, somente em desenvolvimento/testes. Cria planos ausentes sem sobrescrever existentes. Valores fictícios: Essencial R$149/mês (3 usuários), Profissional R$349/mês (10), Empresarial R$799/mês (30). Recursos são propostas fictícias de catálogo, não habilitam módulos nem aplicam cotas reais. Não executar como carga comercial de produção.
