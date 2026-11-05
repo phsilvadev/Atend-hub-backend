@@ -8,6 +8,7 @@ from app.models.auth import User
 from app.models.conversations import Customer, Conversation, ConversationMessage
 from app.repositories import conversations as repository
 from app.services.auth import audit
+from app.services.conversation_reads import unread_counts
 
 STATUS_NAMES = {'new':'Novo','human':'Em atendimento humano','awaiting_customer':'Aguardando cliente','quoting':'Em orçamento','converted':'Convertido em venda','closed':'Encerrado'}
 
@@ -16,10 +17,10 @@ def person(user):
     return {'id':user.id, 'name':user.name, 'role':user.role} if user else None
 
 
-def output(db, conv):
+def output(db, conv, context, unread_count=None):
     customer = db.scalar(select(Customer).where(Customer.id == conv.customer_id, Customer.company_id == conv.company_id))
     assignee = db.scalar(select(User).where(User.id == conv.assigned_user_id, User.company_id == conv.company_id)) if conv.assigned_user_id else None
-    return {'id':conv.id, 'company_id':conv.company_id, 'customer':{'id':customer.id,'name':customer.name,'phone':customer.phone,'business_name':customer.business_name}, 'assigned_user':person(assignee), 'subject':conv.subject, 'status':conv.status,'channel':conv.channel,'created_at':conv.created_at,'updated_at':conv.updated_at,'closed_at':conv.closed_at,'version':conv.version}
+    return {'id':conv.id, 'company_id':conv.company_id, 'customer':{'id':customer.id,'name':customer.name,'phone':customer.phone,'business_name':customer.business_name}, 'assigned_user':person(assignee), 'subject':conv.subject, 'status':conv.status,'channel':conv.channel,'created_at':conv.created_at,'updated_at':conv.updated_at,'closed_at':conv.closed_at,'version':conv.version, 'unread_count':unread_count if unread_count is not None else unread_counts(db,context,[conv.id]).get(conv.id,0), 'first_response_at':conv.first_response_at, 'first_response_seconds':max(0,conv.first_response_at-conv.created_at) if conv.first_response_at is not None else None, 'handling_seconds':conv.handling_seconds + (max(0,now()-conv.opened_at) if conv.opened_at is not None else 0)}
 
 
 def message_output(db, message):
@@ -71,7 +72,7 @@ def create(db, context, data):
             customer = db.scalar(select(Customer).where(Customer.company_id == context.company.id, Customer.phone == data.customer_phone))
             if not customer:
                 raise
-    conv = Conversation(company_id=context.company.id, customer_id=customer.id, assigned_user_id=owner, subject=data.subject, status='human' if owner else 'new', channel='manual', request_id=str(data.request_id), request_hash=body_hash, created_at=now(), updated_at=now(), version=1)
+    conv = Conversation(company_id=context.company.id, customer_id=customer.id, assigned_user_id=owner, subject=data.subject, status='human' if owner else 'new', channel='manual', request_id=str(data.request_id), request_hash=body_hash, created_at=now(), updated_at=now(), version=1, opened_at=now(), handling_seconds=0)
     db.add(conv)
     try:
         db.flush()
@@ -111,6 +112,11 @@ def change(db, context, conversation_id, data):
     if conv.status == 'closed' and target_status not in {'closed','human'}:
         raise HTTPException(409, 'Reabra o atendimento em atendimento humano antes de alterar a etapa.')
     if data.status:
+        if data.status in {'closed','converted'} and conv.opened_at is not None:
+            values['handling_seconds'] = conv.handling_seconds + max(0,now()-conv.opened_at)
+            values['opened_at'] = None
+        elif conv.opened_at is None and data.status not in {'closed','converted'}:
+            values['opened_at'] = now()
         values['status'] = data.status
         values['closed_at'] = (conv.closed_at or now()) if data.status == 'closed' else None
         if data.status != conv.status:
@@ -138,9 +144,13 @@ def add_message(db, context, conversation_id, data):
         raise HTTPException(409, 'Reabra o atendimento humano antes de registrar novas mensagens.')
     if context.user.role not in {'admin','supervisor'} and conv.assigned_user_id != context.user.id:
         raise HTTPException(403, 'Assuma o atendimento antes de registrar mensagens.')
-    changed = db.execute(update(Conversation).where(Conversation.id == conv.id, Conversation.company_id == context.company.id, Conversation.version == data.version).values(updated_at=now(), version=Conversation.version + 1))
+    changed = db.execute(update(Conversation).where(Conversation.id == conv.id, Conversation.company_id == context.company.id, Conversation.version == data.version).values(updated_at=now(), version=Conversation.version + 1, **({'first_response_at':now()} if data.kind == 'manual_outbound' and conv.first_response_at is None else {})))
     if changed.rowcount != 1:
         db.rollback()
+        existing = db.scalar(select(ConversationMessage).where(ConversationMessage.company_id == context.company.id, ConversationMessage.conversation_id == conv.id, ConversationMessage.request_id == str(data.request_id)))
+        if existing and existing.actor_id == context.user.id and existing.body == data.body and existing.kind == data.kind:
+            db.refresh(conv)
+            return existing, conv
         raise HTTPException(409, 'O atendimento mudou. Atualize o histórico antes de registrar a mensagem.')
     message = ConversationMessage(company_id=context.company.id, conversation_id=conv.id, actor_id=context.user.id, kind=data.kind, body=data.body, request_id=str(data.request_id), created_at=now())
     db.add(message)

@@ -61,7 +61,7 @@ Este arquivo acompanha a plataforma completa; uma tela demonstrativa não compro
 
 ## FASE 02 — CENTRAL DE ATENDIMENTOS
 
-Recorte manual entregue e validado: cliente mínimo, conversa, responsável, status e histórico persistidos. A Fase 02 permanece parcial: WhatsApp, IA, leitura/não lidas, métricas e transferência automática continuam pendentes.
+Núcleo local da central concluído e validado: cliente mínimo, conversa, responsável, status, histórico, leitura individual, contadores, atualização automática e tempos manuais. A validação integrada da Fase 02 continua aberta nos itens explicitamente dependentes de WhatsApp/IA (Fases 03/04). Não há execução de IA ou transporte externo nesta entrega.
 
 - [x] Criar entidades de conversas e mensagens com company_id e índices.
 - [x] Associar conversa ao cliente e registrar origem/canal.
@@ -75,9 +75,12 @@ Recorte manual entregue e validado: cliente mínimo, conversa, responsável, sta
 - [ ] Receber/enviar mensagens externas e registrar identificadores/status reais de entrega via WhatsApp.
 - [x] Registrar textos manuais com autorização por empresa e propriedade do atendimento. O registro não faz entrega externa.
 - [ ] Enviar respostas ao cliente por transporte externo validado (Fase 03).
-- [ ] Controlar mensagens não lidas e leitura por usuário.
+- [x] Controlar registros não lidos por usuário com cursor persistido, monotônico e autorizado por atendimento.
+- [x] Exibir contadores reais e filtro Não lidos com escopo de empresa/propriedade.
+- [x] Sincronizar lista/histórico a cada 5 segundos com aba visível, sem sobrepor ciclos ou perder rascunho/histórico paginado.
 - [x] Persistir criação, última atualização e encerramento/reabertura dos atendimentos manuais.
-- [ ] Calcular tempos de primeira resposta/atendimento e aplicar horário comercial na execução automática.
+- [x] Calcular primeira resposta manual e tempo acumulado de atendimento, pausando closed/converted e retomando ao reabrir.
+- [ ] Aplicar horário comercial na execução automática (depende dos motores WhatsApp/IA, Fases 03/04/11).
 - [x] Encerrar/reabrir atendimento e registrar auditoria.
 - [x] Deduplicar criação/mensagens por chave de requisição e proteger atualizações por versão (compare-and-swap).
 - [ ] Prevenir duplicidade de eventos externos e conflitos entre IA e vendedor após integrações.
@@ -260,7 +263,7 @@ Recorte manual entregue e validado: cliente mínimo, conversa, responsável, sta
 ## Dependências, bloqueios e próxima atividade
 
 - Planos entregues no recorte de exibição, catálogo seed e skeleton. Cobrança/contratação e limites reais permanecem pendentes.
-- Etapa atual entregue: Fase 02 manual. Próximos itens são leitura/não lidas e evolução da central, seguidos pela integração WhatsApp da Fase 03; IA depende de fases posteriores.
+- Núcleo da Fase 02 entregue: conversas manuais, leitura, contadores, sincronização e tempos. Próximo: Fase 03, validar conta/documentação Meta e integrar webhook oficial. Execução/transferência de IA e validação ponta a ponta dependem das fases correspondentes.
 - WhatsApp: conta Meta, número habilitado, app/webhook e credenciais oficiais.
 - OpenAI: credenciais, escolha do modelo e definição de custeio por empresa/plataforma.
 - GestãoClick: documentação oficial confirmada, acesso de integração e permissões; não há endpoints inventados.
@@ -281,3 +284,12 @@ Leia este arquivo antes de cada tarefa; selecione item/dependências; sinalize e
 - [x] Testar persistência, permissões, isolamento, duplicidade de requisições e conflitos; gerar prints.
 
 Validação da Fase 02 manual: 86 testes Vitest, 44 Pytest e 9 E2E aprovados, além de build e lint. Inclui API real/SQLite temporário, reload, busca, atribuição, histórico, encerramento/reabertura, versão obsoleta, retries, isolamento e restrição de propriedade; FKs no banco também rejeitam vínculos cruzados. Busca por telefone formatado revalidada; captura mobile aguarda fim da animação e confere dimensões. Migration aplicada ao SQLite local, sem inserir conversas fictícias. Protótipo anterior preservado em pasta demo sem importação pelas rotas. Nenhum Docker executado.
+
+### Execução atual — conclusão da central antes das integrações
+- [x] Persistir leitura individual e contagens de registros não lidos com isolamento/autorização.
+- [x] Atualizar lista e histórico automaticamente sem perder rascunhos ou paginação.
+- [x] Registrar primeira resposta manual e tempo de atendimento, respeitando fechamento/reabertura.
+- [x] Testar concorrência real, marcações de leitura fora de ordem, troca de responsável e acesso revogado.
+- [x] Atualizar documentação/checklist e capturar prints desktop/mobile.
+
+Validação da conclusão do núcleo local: 88 testes Vitest, 49 testes Pytest e 10 E2E aprovados, com build/lint. Inclui disputa de atribuição e mensagens/leituras concorrentes por threads reais, cursor monotônico, duas sessões no navegador, rascunho durante atualização e limpeza do painel após transferência. Migration downgrade/upgrade preservou mensagens e preencheu métricas; aplicada no SQLite local. Prints de contadores e histórico desktop/mobile gerados com dados de teste. Fase 02 não é marcada integralmente concluída enquanto as dependências externas listadas permanecerem abertas. Nenhum Docker executado.

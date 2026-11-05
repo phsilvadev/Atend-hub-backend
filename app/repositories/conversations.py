@@ -14,13 +14,17 @@ def find(db, context, conversation_id):
     return db.scalar(visible_query(context).where(Conversation.id == str(conversation_id)))
 
 
-def listing(db, context, search, status, mine, offset, limit):
+def listing(db, context, search, status, mine, offset, limit, unread_only=False):
     query = visible_query(context).join(Customer, (Customer.id == Conversation.customer_id) & (Customer.company_id == Conversation.company_id))
     if search:
         search = search.strip()
         digits = re.sub(r'\D', '', search) if re.fullmatch(r'\+?[\d ()-]+', search) else ''
         phone_search = digits or search
         query = query.where(or_(Customer.name.icontains(search, autoescape=True), Customer.phone.contains(phone_search, autoescape=True), Customer.business_name.icontains(search, autoescape=True), Conversation.subject.icontains(search, autoescape=True)))
+    if unread_only:
+        from app.services.conversation_reads import unread_query
+        unread = unread_query(context).subquery()
+        query = query.where(Conversation.id.in_(select(unread.c.conversation_id)))
     if status:
         query = query.where(Conversation.status == status)
     if mine:

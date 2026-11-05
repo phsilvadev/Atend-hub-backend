@@ -35,6 +35,9 @@ class Conversation(Base):
     updated_at: Mapped[int] = mapped_column(Integer)
     closed_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
     version: Mapped[int] = mapped_column(Integer, default=1)
+    first_response_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    handling_seconds: Mapped[int] = mapped_column(Integer, default=0)
+    opened_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
 class ConversationMessage(Base):
     __tablename__ = 'conversation_messages'
@@ -52,3 +55,15 @@ class ConversationMessage(Base):
     body: Mapped[str] = mapped_column(Text)
     request_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     created_at: Mapped[int] = mapped_column(Integer)
+
+class ConversationRead(Base):
+    __tablename__ = 'conversation_reads'
+    __table_args__ = (
+        ForeignKeyConstraint(['conversation_id','company_id'], ['conversations.id','conversations.company_id']),
+        ForeignKeyConstraint(['user_id','company_id'], ['users.id','users.company_id']),
+    )
+    company_id: Mapped[str] = mapped_column(ForeignKey('companies.id'), primary_key=True)
+    conversation_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    user_id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    last_message_id: Mapped[int] = mapped_column(Integer, default=0)
+    read_at: Mapped[int] = mapped_column(Integer)

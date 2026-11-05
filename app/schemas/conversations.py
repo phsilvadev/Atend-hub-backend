@@ -79,6 +79,10 @@ class ConversationOutput(BaseModel):
     updated_at: int
     closed_at: int | None
     version: int
+    unread_count: int
+    first_response_at: int | None
+    first_response_seconds: int | None
+    handling_seconds: int
 
 class ConversationList(BaseModel):
     items: list[ConversationOutput]
@@ -100,3 +104,25 @@ class MessagePage(BaseModel):
 class MessageResult(BaseModel):
     message: MessageOutput
     conversation: ConversationOutput
+
+class MarkRead(StrictInput):
+    last_message_id: int = Field(ge=1)
+
+class ReadOutput(BaseModel):
+    company_id: str
+    conversation_id: str
+    last_message_id: int
+    unread_count: int
+
+class ConversationSummary(BaseModel):
+    company_id: str
+    total: int
+    active: int
+    unassigned: int
+    unread_conversations: int
+    unread_messages: int
+
+class ConversationUpdates(BaseModel):
+    conversation: ConversationOutput
+    messages: list[MessageOutput]
+    has_more: bool
