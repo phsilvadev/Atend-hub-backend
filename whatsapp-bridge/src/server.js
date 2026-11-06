@@ -89,6 +89,8 @@ const server = createServer(async (req, res) => {
     res.writeHead(status);
     res.end(JSON.stringify(data));
   };
+  if (req.method === "GET" && req.url === "/health")
+    return send(200, { status: "ok" });
   const supplied = req.headers.authorization || "";
   if (
     req.headers.origin ||
@@ -118,8 +120,8 @@ const server = createServer(async (req, res) => {
     return send(503, { error: "Connection unavailable" });
   }
 });
-server.listen(Number(process.env.BRIDGE_PORT || 8300), "127.0.0.1", () =>
-  process.stdout.write("WhatsApp gateway listening on localhost\n"),
+server.listen(Number(process.env.PORT || process.env.BRIDGE_PORT || 8300), process.env.BRIDGE_HOST || "127.0.0.1", () =>
+  process.stdout.write("WhatsApp gateway listening\n"),
 );
 // Restore existing paired sessions from encrypted storage, without importing history.
 for (const name of await store.list("session")) {

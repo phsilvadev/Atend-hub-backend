@@ -26,3 +26,9 @@ Rotas internas do gateway, todas exigindo Bearer:
 Teste de armazenamento/isolamento/ciclo e autenticação HTTP: `npm test`. Os testes não pareiam um celular real. Referências: https://baileys.wiki/docs/intro/ e https://github.com/WhiskeySockets/Baileys (eventos connection.update, creds.update e messages.upsert). O código não importa o SDK oficial Meta nem solicita credenciais Meta ao cliente.
 
 A versão de protocolo é consultada no WhatsApp Web, com fallback da biblioteca e cache de uma hora; não é uma troca automática da versão npm. Em incompatibilidade do protocolo, o operador pode configurar `WA_WEB_VERSION=major,minor,revision` com uma versão validada. Não use números de versão arbitrários. `HTTPS_PROXY`/`HTTP_PROXY` são respeitados pelo WebSocket e pela consulta de versão; TLS continua validado. Logs diretos do libsignal são suprimidos no processo para evitar exposição das chaves de sessão. O processo emite somente mensagens genéricas de inicialização/falha.
+
+## Railway
+
+Publicar esta pasta como raiz de um serviço Node 22 separado (`railway up whatsapp-bridge --path-as-root`). Configure `BRIDGE_HOST=0.0.0.0`, `PORT=8300`, `BRIDGE_STATE_DIR=/data/state` e volume persistente em `/data`, com uma única réplica. O padrão local continua restrito a localhost. `/health` retorna somente estado do processo, sem autenticação, para o healthcheck; as rotas de sessão continuam exigindo Bearer e recusando Origin.
+
+Configure o domínio HTTPS do gateway em `WHATSAPP_QR_BRIDGE_URL` na API e o mesmo segredo em `BRIDGE_TOKEN`/`WHATSAPP_QR_BRIDGE_TOKEN`. O callback deve apontar para a API pública HTTPS em `/api/v1/webhooks/whatsapp-qr`; eventos são assinados com HMAC. `BRIDGE_ENCRYPTION_KEY` fica somente no serviço e deve ser preservada entre deployments. Não disponibilize token nem chave no frontend. Reiniciar apenas Next/API não inicia este gateway.

@@ -55,3 +55,9 @@ Aguardar status SUCCESS antes de declarar publicação. Push no GitHub sozinho a
 Validação pública: páginas e BFFs HTTP 200; API readiness PostgreSQL/head OK. Turnstile enabled=true/testing=false nos dois painéis; token ausente e Origin não permitido recusados com 403/sem sessão. Widget real renderizado nos três formulários aguardando confirmação humana; não automatizar/burlar o desafio nem alegar login completo já validado. Prints desktop/mobile gerados sem overflow. Dados comerciais fictícios não foram inseridos no banco de produção. Cadastro inicial do superadministrador aguarda definição do e-mail.
 
 Firebase foi verificado com as variáveis reais do serviço em um processo local via railway run --no-local (bucket acessível); isso não representa execução remota por SSH. Nenhuma chave SSH foi cadastrada. O CLI avisou depreciação do railway.toml para 01/dez/2026: planejar migração para IaC antes do prazo, sem bloquear este deploy atual.
+
+## Gateway QR publicado
+
+Serviço `whatsapp-qr` (`f4530345-0cc1-40f8-866f-0256cd7fd956`), pasta `whatsapp-bridge` enviada como raiz via CLI, Node 22, uma instância e volume persistente de 500 MB em `/data`. Healthcheck `/health`, bind `0.0.0.0:8300`, estado em `/data/state`. Domínio HTTPS: `whatsapp-qr-production-9a4f.up.railway.app`. Rotas de sessão exigem Bearer; navegador usa exclusivamente BFF/API, sem receber token do gateway. API configurada com URL/token e callback HMAC validado. A chave AES não deve ser trocada a cada deploy. Repetir upload dessa pasta para atualizar o gateway, não o upload da raiz Python.
+
+Em 06/nov/2026, gateway e API com deployments SUCCESS; QR real gerado e sessão de teste removida sem parear celular. Pareamento pelo usuário e envio/recebimento real ainda precisam ser validados.

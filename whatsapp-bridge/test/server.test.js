@@ -19,6 +19,8 @@ test("Gateway authenticates internal calls, rejects browser origins and arbitrar
   const child = spawn(process.execPath, ["src/server.js"], {
     env: {
       ...process.env,
+      PORT: String(port),
+      BRIDGE_HOST: "0.0.0.0",
       BRIDGE_TOKEN: token,
       BRIDGE_ENCRYPTION_KEY: randomBytes(32).toString("base64"),
       BRIDGE_PORT: String(port),
@@ -37,6 +39,9 @@ test("Gateway authenticates internal calls, rejects browser origins and arbitrar
       ),
     ]);
     const url = `http://127.0.0.1:${port}/sessions/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa`;
+    const health = await fetch(`http://127.0.0.1:${port}/health`);
+    assert.equal(health.status, 200);
+    assert.deepEqual(await health.json(), { status: "ok" });
     assert.equal((await fetch(url)).status, 401);
     assert.equal(
       (

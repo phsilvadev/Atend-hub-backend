@@ -426,3 +426,8 @@ Publicação efetiva em 06/nov/2026 via CLI autenticado cashewdevops@gmail.com: 
 ### Primeiro acesso de superadministrador
 - [ ] 🔄 Criar pedro6489@gmail.com com senha aleatória, sem alterar conta preexistente.
 - [ ] 🔄 Validar provisionamento no PostgreSQL de produção, remover variáveis temporárias e entregar arquivo privado.
+
+### Correção QR Code em produção
+- [x] Publicar gateway Node dedicado com volume criptografado, configurar API, validar QR real e remoção da sessão de teste.
+
+Railway: gateway 585be7f2-5785-42ab-98e4-2ebc536029d2 e API bcfec00f-d1f0-4441-aae7-538f232695d0 em SUCCESS. Volume 500 MB montado em /data, chave AES e token em variáveis protegidas. QR real gerado sem parear telefone; sessão de validação removida com HTTP 200. Healthcheck 200, acesso anônimo e Origin 401, callback assinado para sessão inexistente 200 (ignorado, sem criar dados comerciais). 4 testes Node e 144 Pytest aprovados. Pareamento e mensagens reais continuam pendentes de leitura do QR pelo usuário.
