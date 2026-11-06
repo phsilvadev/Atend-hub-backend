@@ -405,8 +405,12 @@ Preparação Railway: projeto privado AtendeHub criado, ambiente production e se
 - [x] Configurar chaves reais Turnstile no .env protegido e conferir rejeição esperada de token inválido no Siteverify.
 - [x] Preparar driver PostgreSQL, credencial Firebase por variável secreta e readiness com banco/migrations (testes locais aprovados).
 - [x] Provisionar PostgreSQL persistente (deployment SUCCESS) e configurar serviços/origens/segredos no Railway.
-- [ ] Associar GitHub e publicar os três serviços — GitHub conectado, porém Railway retorna "User does not have access to the repo" para os três repositórios; aguardando autorização do aplicativo Railway nesses repositórios.
-- [ ] Validar deployments SUCCESS, formulários com Turnstile real, isolamento e prints.
+- [x] Publicar os três serviços por upload direto do CLI na conta com créditos, sem depender do acesso GitHub.
+- [ ] Habilitar vínculo GitHub/autodeploy quando o acesso aos repositórios estiver disponível.
+- [x] Validar deployments SUCCESS, readiness PostgreSQL/migrations, páginas públicas, BFF e prints desktop/mobile.
+- [x] Verificar Turnstile real habilitado, sem modo de teste, recusa sem token e de origem não autorizada, sem sessão emitida.
+- [ ] Concluir login/cadastro real com confirmação humana do Turnstile; widget aguardou ação humana no navegador automatizado.
+- [ ] Provisionar primeiro superadministrador após definição do e-mail pelo usuário.
 
 Preparação de produção: 141 Pytest aprovados, incluindo normalização de URL PostgreSQL para psycopg3, readiness com migrations e credencial Firebase por SecretStr JSON. Configurações TOML validadas; aplicação ainda não foi declarada publicada. Segredos configurados via variáveis privadas do backend; desenvolvimento preserva SQLite e par Turnstile oficial de teste.
 
@@ -415,3 +419,6 @@ Bloqueio de publicação confirmado após conexão GitHub: connect-service-sourc
 Diagnóstico confirmado pelo usuário: a conta do navegador que conectou o GitHub é diferente da conta OAuth usada pela integração Railway (cashewdevops@gmail.com). Novas tentativas nos três repos continuaram recusadas. Publicação via CLI não prosseguiu: fluxo de login cancelado antes de criar/enviar qualquer projeto. Aguardar reconexão do app Railway do ChatGPT à conta pretendida. Projeto/Postgres atuais continuam na conta OAuth original; nenhuma exclusão ou transferência foi executada.
 
 Correção de diagnóstico após esclarecimento do usuário: projeto compartilhado entre contas é válido; diferença de e-mails não exige reconexão. Acesso de gerenciamento ao projeto foi confirmado. O bloqueio continua específico à vinculação GitHub pela integração, com fontes dos três serviços ainda nulas. Próxima ação: membro com GitHub autorizado vincular os três repos existentes na branch development; acompanhar deployments e validar, sem recriar recursos.
+
+Publicação efetiva em 06/nov/2026 via CLI autenticado cashewdevops@gmail.com: API fb2f22db-806d-42b0-825b-0648a27617d3, cliente 19f40c1c-30af-40b4-8f61-b7093cd9247d, superadmin a9866479-58a1-40ea-a2bc-443a307220dd, todos SUCCESS. PostgreSQL também SUCCESS. HTTP 200 em login/cadastro e configurações públicas; readiness confirmou banco e head de migrations; login sem token/origem não autorizada 403, sem cookie. Firebase acessível usando variáveis reais de produção em processo local; não alegar execução SSH (nenhuma chave SSH foi adicionada). Prints de produção desktop/mobile sem overflow, widget real pede confirmação humana. Nenhuma conta comercial fictícia criada em produção. Autodeploy GitHub ainda não configurado; próximos uploads via CLI.
+- [ ] Migrar railway.toml para IaC antes de 01/dez/2026 conforme aviso do CLI; formato atual segue operacional até essa data.

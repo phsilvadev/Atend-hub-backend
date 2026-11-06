@@ -207,3 +207,11 @@ Cadastro/login do cliente e login do superadmin possuem Turnstile com validaçã
 
 ### Execução no Railway
 Railpack usa Python 3.12, PostgreSQL por referência de serviço, migrações em pre-deploy e readiness `/health/ready`. URLs postgres:// e postgresql:// usam psycopg3; SQLite continua sendo o banco local de desenvolvimento. Firebase recebe a credencial via variável secreta GOOGLE_SERVICE_ACCOUNT_JSON. Veja [docs/RAILWAY.md](docs/RAILWAY.md); não copie arquivos .env, dados SQLite ou credenciais para o Git.
+
+### Endereços publicados
+- Cliente: https://cliente-production-a80d.up.railway.app/login
+- Cadastro: https://cliente-production-a80d.up.railway.app/cadastro
+- Superadmin: https://superadmin-production-3d47.up.railway.app/login
+- Prontidão da API: https://api-production-5aaf.up.railway.app/health/ready
+
+Deploys SUCCESS por upload direto do CLI; instruções de atualização em docs/RAILWAY.md. PostgreSQL/migrations e Turnstile real configurados. Login exige confirmação humana; nenhum usuário comercial de demonstração foi criado. Primeiro superadministrador aguarda configuração inicial. Autodeploy GitHub permanece separado do deploy direto.
