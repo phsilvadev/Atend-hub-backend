@@ -405,7 +405,9 @@ Preparação Railway: projeto privado AtendeHub criado, ambiente production e se
 - [x] Configurar chaves reais Turnstile no .env protegido e conferir rejeição esperada de token inválido no Siteverify.
 - [x] Preparar driver PostgreSQL, credencial Firebase por variável secreta e readiness com banco/migrations (testes locais aprovados).
 - [x] Provisionar PostgreSQL persistente (deployment SUCCESS) e configurar serviços/origens/segredos no Railway.
-- [ ] 🔄 Associar GitHub e publicar os três serviços — usuário informou que conectou o GitHub; preparar fontes/primeiros deployments.
+- [ ] Associar GitHub e publicar os três serviços — GitHub conectado, porém Railway retorna "User does not have access to the repo" para os três repositórios; aguardando autorização do aplicativo Railway nesses repositórios.
 - [ ] Validar deployments SUCCESS, formulários com Turnstile real, isolamento e prints.
 
 Preparação de produção: 141 Pytest aprovados, incluindo normalização de URL PostgreSQL para psycopg3, readiness com migrations e credencial Firebase por SecretStr JSON. Configurações TOML validadas; aplicação ainda não foi declarada publicada. Segredos configurados via variáveis privadas do backend; desenvolvimento preserva SQLite e par Turnstile oficial de teste.
+
+Bloqueio de publicação confirmado após conexão GitHub: connect-service-source recusou os três repos com User does not have access to the repo. Usuário orientado a autorizar o aplicativo Railway no GitHub. PostgreSQL segue SUCCESS; nenhuma das aplicações possui deployment iniciado. Segredos/variáveis foram conferidos por nomes, sem exposição de valores.

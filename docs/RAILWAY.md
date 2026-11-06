@@ -28,3 +28,6 @@ Nenhuma credencial é registrada neste documento. Preparação não é autoriza�
 - API executa `alembic upgrade head` em pre-deploy, start uvicorn e readiness `/health/ready`, que testa banco e migration head. `/health` é liveness.
 - Configuração versionada em railway.toml de cada repo; arquivos locais/segredos excluídos de upload pela .railwayignore e do Git.
 - Nenhum usuário ou plano fictício é criado em produção; administrador inicial da plataforma deve ser cadastrado pelo comando protegido existente `python -m app.cli.platform_admin` no ambiente do backend.
+
+## Bloqueio atual da fonte GitHub
+A conta foi conectada pelo usuário, mas a API Railway ainda retorna `User does not have access to the repo` para os três repositórios. É necessário autorizar o aplicativo Railway nos repositórios/conta corretos em https://github.com/settings/installations. Não alterar a visibilidade do repositório privado para contornar esse controle. Até resolver, apenas PostgreSQL está com deployment SUCCESS; frontend/API não foram declarados publicados.
