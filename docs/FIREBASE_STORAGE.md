@@ -32,3 +32,6 @@ O bucket deve existir, com Cloud Storage/Firebase Storage habilitado e faturamen
 Pytest cobre SDK simulado, validação real de imagens, isolamento, papéis, revogação durante upload, concorrência, falhas, substituição e preservação na importação ERP. E2E cobre Next → API → SDK simulado, arrastar/soltar, prévia, persistência, miniatura autenticada, mobile e CSRF. A fixture gráfica de produto é fictícia e existe somente nos testes. Nenhuma simulação é ativável por flag na API de produção.
 
 Teste real reproduzível pelo frontend: `E2E_FIREBASE_REAL=1 E2E_GESTAOCLICK_STUB=1` com `BACKEND_SOURCE_DIR` explícito e credencial local configurada. O runner usa SQLite temporário; somente o ERP é simulado. A verificação/limpeza usa as referências desse banco/empresa de teste, nunca objetos de outras empresas. Não habilite E2E_FIREBASE_STORAGE_STUB junto ao modo real.
+
+## Credencial no Railway
+O backend também aceita `GOOGLE_SERVICE_ACCOUNT_JSON` como variável secreta com o JSON da conta de serviço. Esse valor é SecretStr e só é passado ao Firebase Admin SDK no servidor. É uma alternativa ao caminho GOOGLE_APPLICATION_CREDENTIALS, que não existe automaticamente no container. Em produção a variável JSON já foi configurada no serviço api, sem colocar o arquivo no Git ou no frontend. Ao configurar a variável JSON, ela tem precedência sobre arquivo/ADC.

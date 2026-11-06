@@ -400,3 +400,12 @@ Validação real em 06/nov/2026: E2E com Next/API/SQLite temporário e Firebase 
 Validação antirrobô: 138 Pytest, 109 Vitest do cliente e 15 do superadmin aprovados; builds dos dois Next e E2E de cliente/superadmin aprovados com widget e Siteverify oficiais usando par público de TESTE. Testes backend sem modo dummy cobrem host/action incorretos, token ausente, replay persistente, expiração, indisponibilidade e senha ainda obrigatória. Cadastro e login do cliente funcionam; senha incorreta renova o desafio; login da plataforma funciona e recusa POST sem token. Prints desktop/mobile gerados; dados somente em SQLite temporário. Produção não aceita modo/chaves de teste e nenhum deploy Railway foi iniciado sem as chaves reais. Segredo fica somente no backend.
 
 Preparação Railway: projeto privado AtendeHub criado, ambiente production e serviços vazios api/cliente/superadmin com domínios reservados. Ainda sem fonte/deployment; banco/variáveis de produção e chaves Turnstile reais pendentes. Endereços de cliente/superadmin informados para cadastro no widget. Plano técnico em docs/RAILWAY.md do backend.
+
+### Publicação Railway — produção
+- [x] Configurar chaves reais Turnstile no .env protegido e conferir rejeição esperada de token inválido no Siteverify.
+- [x] Preparar driver PostgreSQL, credencial Firebase por variável secreta e readiness com banco/migrations (testes locais aprovados).
+- [x] Provisionar PostgreSQL persistente (deployment SUCCESS) e configurar serviços/origens/segredos no Railway.
+- [ ] 🔄 Associar GitHub e publicar os três serviços — usuário informou que conectou o GitHub; preparar fontes/primeiros deployments.
+- [ ] Validar deployments SUCCESS, formulários com Turnstile real, isolamento e prints.
+
+Preparação de produção: 141 Pytest aprovados, incluindo normalização de URL PostgreSQL para psycopg3, readiness com migrations e credencial Firebase por SecretStr JSON. Configurações TOML validadas; aplicação ainda não foi declarada publicada. Segredos configurados via variáveis privadas do backend; desenvolvimento preserva SQLite e par Turnstile oficial de teste.

@@ -307,3 +307,6 @@ Limites locais do teste: dez tentativas por 15min/tenant e intervalo mínimo de 
 
 ### Proteção antirrobô na autenticação
 `GET /api/v1/auth/challenge` e `GET /api/v1/platform/auth/challenge` retornam `{enabled,site_key,testing}`. Login/cadastro do cliente e login da plataforma aceitam `challenge_token` (opcional no schema para desenvolvimento desativado, obrigatório com Turnstile habilitado). A API valida Siteverify, domínio, action, validade e reuso antes de autenticar/criar registros. Token ausente/inválido/expirado/reutilizado: 403, sem cookie/sessão nova; provedor indisponível: 503. Dados inválidos: 422. Limites existentes: 429. Consulte `docs/ANTIBOT.md` para chaves, ambientes e limites do modo de teste.
+
+### Verificação de saúde
+`GET /health` confirma processo ativo. `GET /health/ready` confirma conexão com o banco e versão das migrations no head: 200 `{status:"ready"}` ou 503 `{status:"not_ready"}`, sem retornar detalhes internos/credenciais.

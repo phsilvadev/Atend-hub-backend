@@ -1,5 +1,6 @@
 """Private Firebase/GCS objects. No public download tokens or browser credentials."""
 import re
+import json
 from uuid import uuid4
 from functools import lru_cache
 import firebase_admin
@@ -16,7 +17,8 @@ class StorageUnavailable(Exception):
 def _bucket(name):
     # ADC supports GOOGLE_APPLICATION_CREDENTIALS or an attached workload identity.
     account_file = get_settings().google_application_credentials
-    identity = credentials.Certificate(account_file) if account_file else credentials.ApplicationDefault()
+    account_json = get_settings().google_service_account_json.get_secret_value()
+    identity = credentials.Certificate(json.loads(account_json)) if account_json else credentials.Certificate(account_file) if account_file else credentials.ApplicationDefault()
     app = firebase_admin.initialize_app(identity, {'storageBucket': name}, name='product-images-' + str(uuid4()))
     return storage.bucket(app=app)
 

@@ -1,6 +1,6 @@
 import logging
 from urllib.parse import urlsplit
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from app.api.gestaoclick import router as gestaoclick_router
@@ -14,6 +14,7 @@ from app.api.conversations import router as conversations_router
 from app.api.platform_companies import router as companies_router
 from app.api.knowledge import router as platform_router, public_router as knowledge_router
 from app.core.config import get_settings
+from app.core.database import get_db
 
 app = FastAPI(title='AtendeHub Auth API', version='0.1.0')
 app.include_router(router)
@@ -56,3 +57,18 @@ async def unexpected_error(request, exc):
 @app.get('/health')
 def health():
     return {'status': 'ok'}
+
+@app.get('/health/ready')
+def readiness(db=Depends(get_db)):
+    # No configuration values or database error text in health responses.
+    from sqlalchemy import text
+    from alembic.config import Config
+    from alembic.script import ScriptDirectory
+    try:
+        db.execute(text('SELECT 1'))
+        current = db.execute(text('SELECT version_num FROM alembic_version')).scalar_one()
+        if current != ScriptDirectory.from_config(Config('alembic.ini')).get_current_head():
+            raise ValueError()
+    except Exception:
+        return JSONResponse({'status': 'not_ready'}, status_code=503)
+    return {'status': 'ready'}

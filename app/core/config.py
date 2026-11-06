@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     whatsapp_graph_version: str = Field(default='v25.0',pattern=r'^v[0-9]{1,3}\.0$')
     whatsapp_public_webhook_url: str = ''
     google_application_credentials: str = ''
+    google_service_account_json: SecretStr = SecretStr('')
     firebase_storage_bucket: str = Field(default="", pattern=r"^[a-z0-9][a-z0-9._-]{1,220}[a-z0-9]$|^$")
     turnstile_enabled: bool = False
     turnstile_site_key: str = ''
