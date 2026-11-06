@@ -132,8 +132,9 @@ Núcleo local da central concluído e validado: cliente mínimo, conversa, respo
 
 - [ ] Consultar documentação oficial e confirmar endpoints e autenticação — bloqueio prévio a chamadas reais.
 - [ ] Criar interface ERP e adaptador independente do fornecedor.
-- [ ] Configurar credenciais seguras e permissões por empresa.
-- [ ] Sincronizar produtos com IDs externos e controle incremental.
+- [x] Configurar credenciais criptografadas e acesso administrativo por empresa (GestãoClick).
+- [x] Sincronizar catálogo de produtos com IDs ERP, paginação, retomada e publicação transacional.
+- [ ] Implementar sincronização incremental por data de alteração e agendamento em background.
 - [ ] Sincronizar clientes sem duplicidade.
 - [ ] Consultar preços e estoque; ERP como fonte oficial.
 - [ ] Consultar histórico de vendas e compras do cliente.
@@ -144,17 +145,19 @@ Núcleo local da central concluído e validado: cliente mínimo, conversa, respo
 
 ## FASE 06 — CATÁLOGO DE PRODUTOS E CLIENTES
 
-- [ ] Criar produtos com company_id, ID ERP, SKU, nome, categoria e descrição.
+- [x] Criar produtos com company_id, ID ERP, código interno, nome, categoria e descrição.
 - [ ] Cadastrar material, formato, espessura, largura, altura e comprimento.
 - [ ] Cadastrar unidade comercial, peso teórico e disponibilidade.
 - [ ] Pesquisar nome, código, categoria, medidas, descrição e sinônimos.
 - [ ] Resolver termos como metalon 30 por 30 chapa 18 e solicitar confirmação de ambiguidades.
 - [ ] Criar clientes por empresa, identificados por telefone normalizado e ID ERP.
-- [ ] Evitar duplicidade de clientes e produtos em importações/sincronizações.
+- [x] Evitar duplicidade de produtos por empresa/ID ERP e validar páginas repetidas.
+- [ ] Evitar duplicidade de clientes em importações/sincronizações.
 - [ ] Registrar vendedor responsável, classificação e observações internas.
 - [ ] Consultar históricos de atendimento, orçamento e compras.
 - [ ] Registrar produtos de interesse e última interação.
-- [ ] Integrar telas de produtos/clientes aos endpoints reais.
+- [x] Integrar tela de produtos ao catálogo persistido, com busca por nome/código, paginação e skeleton.
+- [ ] Integrar tela de clientes aos endpoints reais.
 - [ ] Testar cadastro, busca, duplicidade, histórico, proteção de dados e isolamento.
 
 ## FASE 07 — ORÇAMENTOS E OPORTUNIDADES
@@ -363,3 +366,10 @@ Validação direcionada desta entrega: 3 Pytest de cadastro/edição/remoção, 
 - [ ] Validar credenciais reais autorizadas e sincronizar produtos/clientes em etapa futura.
 
 Validação: testes automatizados da consulta /lojas, seleção persistida, criptografia, isolamento, permissões, limite de tentativas, falhas do ERP e alterações concorrentes aprovados. Dois E2E aprovados com API e SQLite temporário reais e respostas HTTP do ERP simuladas. Prints desktop/mobile gerados. Não houve validação com conta real, sincronização nem execução de Docker.
+
+### GestãoClick — sincronização essencial de produtos
+- [x] Implementar importação paginada somente de leitura, isolamento, prevenção de duplicidade e diagnóstico.
+- [x] Integrar botão, progresso e catálogo real com skeleton e testes.
+- [x] Validar consulta real autorizada sem publicar segredos: uma loja acessível e catálogo vazio retornado pela chave.
+
+Validação desta etapa: 108 Pytest na suíte completa e 11 testes específicos de importação (incluindo dois casos adicionais de revogação de acesso e allowlist), 101 Vitest, lint/typecheck/build e 3 E2E aprovados. Os E2E usam API real/SQLite temporário e transporte HTTP do ERP simulado, com prints desktop/mobile. Consulta real autorizada do adapter confirmou uma loja e zero produtos; importação real com catálogo preenchido/paginação ainda não validada. Credenciais não foram persistidas fora do armazenamento criptografado nem adicionadas ao Git. Migração aplicada ao SQLite local. Preços, estoque, unidade, clientes, sincronização incremental e background continuam pendentes. Sem Docker.

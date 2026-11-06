@@ -287,3 +287,14 @@ Atualização do cadastro anterior (sem transporte): estas ações explícitas p
 - `GET /api/v1/integrations/gestaoclick` — acrescenta stores (`[{id,name}]`), selected_store_id, tested_at e test_error_code. Status possíveis: not_configured, credentials_saved, access_validated, test_failed. Os estados são resultado da última consulta, não monitoração contínua nem comprovação de acesso ao catálogo.
 
 Limites locais do teste: dez tentativas por 15min/tenant e intervalo mínimo de um segundo; 429 local pode conter Retry-After. Mudança/remoção de configuração durante a chamada descarta a resposta velha com 409. Seleção não muda o vínculo fixo de usuário/loja no GestãoClick.
+
+### Catálogo GestãoClick — importação explícita
+- `GET /api/v1/integrations/gestaoclick/products-sync`: administrador; diagnóstico da empresa da sessão.
+- `POST /api/v1/integrations/gestaoclick/products-sync/start` com `{ "version": 3 }`: inicia uma execução e devolve `run_id`. Requer credenciais e loja salvas. Não faz HTTP ao ERP.
+- `POST /api/v1/integrations/gestaoclick/products-sync/next` com `{ "run_id": "UUID" }`: consulta uma página de `GET /produtos?loja_id=...&pagina=...&limite=100`. Repita enquanto `status=running`, com intervalo mínimo de um segundo. A UI aguarda 1,1s. Recarregar/fechar pausa o processamento e permite retomada.
+- Progresso: `company_id`, `run_id`, `status` (`idle/running/completed/failed`), `processed`, `pages_done`, `total_pages`, `started_at`, `completed_at`, `last_success_at`, `error_code`.
+- `GET /api/v1/products?q=metalon&page=1`: usuários ativos da empresa; busca literal por nome/código, 20 itens/página. Resposta `{company_id,total,page,page_size,items}`. Itens: `id,erp_id,code,name,description,category,active,has_variations,synced_at`.
+- Regras: 409 configuração/paginação alterada; 429 página em processamento ou intervalo; erros remotos sanitizados. IDs de empresa não são aceitos no corpo. Nenhum segredo aparece nas respostas.
+- Importação em staging; publicação transacional apenas após validar todas as páginas e contagens. Chave única empresa + ID ERP. Repetir atualiza sem duplicar; produtos ausentes não são removidos. Sem chamadas de escrita no ERP.
+- Até 100 páginas/10.000 produtos por execução e 4MiB/página. Limite excedido falha preservando catálogo anterior. Sem sincronização automática/worker nesta etapa.
+- Não importa preços, custos, estoque, unidade comercial (ausente no contrato da listagem), composição ou variações individuais. `has_variations` somente sinaliza existência. Nenhum desses dados é inferido.

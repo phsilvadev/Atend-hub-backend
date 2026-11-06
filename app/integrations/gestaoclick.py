@@ -59,3 +59,64 @@ def list_stores(base_url,credentials):
         raise
     except (httpx.HTTPError,ValueError,TypeError,KeyError):
         raise ERPError('erp_unavailable','Não foi possível consultar o GestãoClick. Verifique a conexão e tente novamente.')
+
+
+def product_page(base_url, credentials, store_id, page):
+    """One bounded GET; provider-supplied pagination URLs are never followed."""
+    if base_url != SERVER:
+        raise ERPError('invalid_server', 'Use o servidor confirmado no OpenAPI.', 422)
+    try:
+        with httpx.Client(timeout=8, follow_redirects=False) as client:
+            with client.stream('GET', SERVER + '/produtos', params={
+                'loja_id': store_id, 'pagina': page, 'limite': 100,
+            }, headers={'access-token': credentials['access_token'],
+                        'secret-access-token': credentials['secret_access_token'],
+                        'Accept': 'application/json'}) as response:
+                raw = bytearray()
+                for chunk in response.iter_bytes():
+                    raw.extend(chunk)
+                    if len(raw) > 4 * 1024 * 1024:
+                        raise ValueError()
+                payload = json.loads(raw)
+                code = response.status_code
+                if code == 200 and isinstance(payload, dict) and type(payload.get('code')) is int:
+                    code = payload['code']
+                if code == 403:
+                    raise ERPError('permission_denied', 'A chave não tem permissão Produtos/index no GestãoClick.', 422)
+                if code in ERRORS:
+                    raise ERPError(*ERRORS[code])
+                if code != 200:
+                    raise ERPError('erp_unavailable', 'Não foi possível consultar os produtos do GestãoClick.')
+                if not isinstance(payload, dict) or payload.get('code') != 200 or payload.get('status') != 'success':
+                    raise ValueError()
+                rows, meta = payload.get('data'), payload.get('meta')
+                if not isinstance(rows, list) or len(rows) > 100 or not isinstance(meta, dict):
+                    raise ValueError()
+                total_pages = meta.get('total_paginas')
+                total = meta.get('total_registros')
+                # The live ERP returns null totals for a successful empty first page.
+                if not rows and page == 1 and total_pages is None and total is None and meta.get('proxima_pagina') is None and meta.get('proxima_url') is None:
+                    total_pages, total = 0, 0
+                if type(total_pages) is not int or not 0 <= total_pages <= 100 or type(total) is not int or not 0 <= total <= 10000 or meta.get('pagina_atual') != page or (total_pages == 0 and (total != 0 or rows)) or (total_pages > 0 and page > total_pages):
+                    raise ValueError()
+                products = []
+                for row in rows:
+                    if not isinstance(row, dict):
+                        raise ValueError()
+                    erp_id = str(row.get('id', ''))
+                    if not re.fullmatch(r'[0-9]{1,40}', erp_id):
+                        raise ValueError()
+                    fields = {}
+                    for source, target, limit in [('nome', 'name', 500), ('codigo_interno', 'code', 160), ('descricao', 'description', 10000), ('nome_grupo', 'category', 500)]:
+                        value = row.get(source) or ''
+                        if not isinstance(value, str) or len(value) > limit:
+                            raise ValueError()
+                        fields[target] = value
+                    if not fields['name'].strip() or row.get('ativo') not in ('0', '1') or row.get('possui_variacao', '0') not in ('0', '1'):
+                        raise ValueError()
+                    products.append({'erp_id': erp_id, **fields, 'active': row['ativo'] == '1', 'has_variations': row.get('possui_variacao') == '1'})
+                return products, max(1, total_pages), total
+    except ERPError:
+        raise
+    except (httpx.HTTPError, ValueError, TypeError, KeyError):
+        raise ERPError('invalid_response', 'Não foi possível ler o catálogo. Confira a conexão, os limites e o formato dos dados do ERP.')

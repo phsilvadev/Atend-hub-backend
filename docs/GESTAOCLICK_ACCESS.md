@@ -24,3 +24,8 @@ Controle de concorrência por versão: uma resposta iniciada antes da edição/r
 ## Ainda pendente
 
 Credenciais reais autorizadas, verificação do usuário efetivo e das permissões de catálogo, compatibilidade da loja selecionada com o escopo da chave, preços/estoque e sincronização de produtos/clientes. Nenhum dado comercial é importado neste recorte. A prévia frontend permanece simulada e separada do painel real.
+
+## Produtos — 06/nov/2026
+Contrato de GET /produtos extraído do mesmo OpenAPI fornecido: query `loja_id`, `pagina`, `limite` (máximo 100); permissão `Produtos/index`. Importador utiliza IDs ERP, código interno, nome, descrição, grupo, ativo e indicador de variação. Unidade comercial não consta no schema da listagem: fica para confirmação posterior, sem valor inventado.
+
+Consulta real autorizada pelo usuário confirmou autenticação e uma loja acessível. O catálogo respondeu vazio; nesse caso a API real devolve `meta.total_registros=null` e `meta.total_paginas=null`, com página 1 e sem próxima página. O adapter aceita essa combinação somente para resposta success vazia da primeira página. Nenhum token foi adicionado a fixtures, documentação ou Git. Catálogo preenchido/paginação real continuam dependentes de produtos disponíveis na conta; testes HTTP simulados cobrem esses cenários.

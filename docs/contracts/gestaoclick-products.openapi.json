@@ -1,0 +1,697 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "API GestãoClick",
+    "version": "1.0.0",
+    "description": "A Integração via API permite que outros sistemas conversem com o seu, criando, consultando, alterando e excluindo registros pela nuvem.\n\n### Autenticação\n\nGere o **Access Token** e o **Secret Access Token** na tela de Integração via API e envie os dois em todas as requisições, como cabeçalho HTTP:\n\n```\naccess-token: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\nsecret-access-token: YYYYYYYYYYYYYYYYYYYYYYYYYYYYYY\n```\n\n### Limite de requisições\n\nMáximo de **3 requisições por segundo** e **30.000 por dia**, por empresa. Ao ultrapassar, a resposta vem com status `429` e a mensagem *O limite de requisicoes foi atingido*.\n\n### Limites de registros\n\nToda requisição `GET` de listagem é paginada, com no máximo **100 registros por página**. Use `pagina`, `limite`, `ordenacao` e `direcao` para navegar.\n\n### Atribuição de usuário\n\nEmpresas com mais de um usuário devem mandar `usuario_id`. Sem esse campo, a API usa o usuário master. Os ids saem de `GET /usuarios`.\n\n### Atribuição de loja\n\nEmpresas com mais de uma loja devem mandar `loja_id` (na query ou no corpo). Sem esse campo, a API usa a loja matriz ou a loja que o usuário tem permissão de acessar. Os ids saem de `GET /lojas`.\n"
+  },
+  "servers": [
+    {
+      "url": "https://api.gestaoclick.com/api",
+      "description": "Cadastros, produtos e serviços"
+    }
+  ],
+  "security": [
+    {
+      "accessToken": [],
+      "secretAccessToken": []
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "accessToken": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "access-token"
+      },
+      "secretAccessToken": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "secret-access-token"
+      }
+    }
+  },
+  "paths": {
+    "/produtos": {
+      "get": {
+        "tags": [
+          "Cadastros, produtos e serviços"
+        ],
+        "summary": "Listar produtos",
+        "operationId": "core_produtos_listar",
+        "x-modulo": "core",
+        "x-recurso": "produtos",
+        "x-operacao": "listar",
+        "parameters": [
+          {
+            "name": "loja_id",
+            "in": "query",
+            "required": false,
+            "description": "int — loja do estoque e dos valores; sem ele, a loja da chave (a matriz, se a chave não fixa loja). Uma loja por consulta",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "nome",
+            "in": "query",
+            "required": false,
+            "description": "string — nome do produto: todas as palavras, em qualquer ordem (busca parcial)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "codigo",
+            "in": "query",
+            "required": false,
+            "description": "string — código interno ou código de barras do produto (parcial); o código da variação só exato",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "busca",
+            "in": "query",
+            "required": false,
+            "description": "string — nome, código interno ou código de barras de uma vez (código de barras exato)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "grupo_id",
+            "in": "query",
+            "required": false,
+            "description": "int — grupo de produtos, já com os subgrupos; SG = só os produtos sem grupo — ids em `/grupos_produtos`",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fornecedor_id",
+            "in": "query",
+            "required": false,
+            "description": "int — produtos ligados a este fornecedor — ids em `/fornecedores`",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ativo",
+            "in": "query",
+            "required": false,
+            "description": "1 = só ativos, 0 = só inativos; sem ele entram os dois",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "situacao",
+            "in": "query",
+            "required": false,
+            "description": "situação do ESTOQUE na loja (só produtos que movimentam estoque): 1 = sem estoque (zero ou negativo), 2 = com estoque, 3 = no mínimo ou abaixo, 4 = no máximo ou acima (3 e 4 só os que têm mínimo/máximo preenchido)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "data_modificado_inicio",
+            "in": "query",
+            "required": false,
+            "description": "AAAA-MM-DD — só os cadastros alterados a partir deste dia",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "data_modificado_fim",
+            "in": "query",
+            "required": false,
+            "description": "AAAA-MM-DD — alterados até este dia, EXCLUSIVE: compara com o início do dia, então para incluir o dia mande o dia seguinte",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "atributo",
+            "in": "query",
+            "required": false,
+            "description": "atributo[<id do campo extra>]=texto — produtos com esse conteúdo no campo extra (ex.: atributo[326048]=azul) — ids em `/atributos_produtos`",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pagina",
+            "in": "query",
+            "description": "Página da listagem",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "description": "Registros por página (padrão 20, máximo 100; acima de 100 volta 100 sem avisar)",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "ordenacao",
+            "in": "query",
+            "description": "Campo de ordenação",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "direcao",
+            "in": "query",
+            "description": "asc ou desc",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "properties": {
+                        "total_registros": {
+                          "type": "integer"
+                        },
+                        "total_paginas": {
+                          "type": "integer"
+                        },
+                        "total_registros_pagina": {
+                          "type": "integer"
+                        },
+                        "pagina_atual": {
+                          "type": "integer"
+                        },
+                        "limite_por_pagina": {
+                          "type": "integer"
+                        },
+                        "pagina_anterior": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "url_anterior": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "proxima_pagina": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "proxima_url": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      }
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "nome": {
+                            "type": "string"
+                          },
+                          "codigo_interno": {
+                            "type": "string"
+                          },
+                          "codigo_barra": {
+                            "type": "string"
+                          },
+                          "possui_variacao": {
+                            "type": "string"
+                          },
+                          "possui_composicao": {
+                            "type": "string"
+                          },
+                          "movimenta_estoque": {
+                            "type": "string"
+                          },
+                          "peso": {
+                            "type": "string"
+                          },
+                          "largura": {
+                            "type": "string"
+                          },
+                          "altura": {
+                            "type": "string"
+                          },
+                          "comprimento": {
+                            "type": "string"
+                          },
+                          "ativo": {
+                            "type": "string"
+                          },
+                          "grupo_id": {
+                            "type": "string"
+                          },
+                          "nome_grupo": {
+                            "type": "string"
+                          },
+                          "descricao": {
+                            "type": "string"
+                          },
+                          "estoque": {
+                            "type": "integer"
+                          },
+                          "valor_custo": {
+                            "type": "string"
+                          },
+                          "valor_venda": {
+                            "type": "string"
+                          },
+                          "valores": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "tipo_id": {
+                                  "type": "string"
+                                },
+                                "nome_tipo": {
+                                  "type": "string"
+                                },
+                                "lucro_utilizado": {
+                                  "type": "string"
+                                },
+                                "valor_custo": {
+                                  "type": "string"
+                                },
+                                "valor_venda": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          },
+                          "variacoes": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "variacao": {
+                                  "type": "object",
+                                  "properties": {
+                                    "id": {
+                                      "type": "string"
+                                    },
+                                    "nome": {
+                                      "type": "string"
+                                    },
+                                    "estoque": {
+                                      "type": "string"
+                                    },
+                                    "valores": {
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "properties": {
+                                          "tipo_id": {
+                                            "type": "string"
+                                          },
+                                          "nome_tipo": {
+                                            "type": "string"
+                                          },
+                                          "lucro_utilizado": {
+                                            "type": "string"
+                                          },
+                                          "valor_custo": {
+                                            "type": "string"
+                                          },
+                                          "valor_venda": {
+                                            "type": "string"
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          },
+                          "fiscal": {
+                            "type": "object",
+                            "properties": {
+                              "ncm": {
+                                "type": "string"
+                              },
+                              "cest": {
+                                "type": "string"
+                              },
+                              "peso_liquido": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "peso_bruto": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "valor_aproximado_tributos": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "valor_fixo_pis": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "valor_fixo_pis_st": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "valor_fixo_confins": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "valor_fixo_confins_st": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "code": 200,
+                  "status": "success",
+                  "meta": {
+                    "total_registros": 2,
+                    "total_paginas": 1,
+                    "total_registros_pagina": 2,
+                    "pagina_atual": 1,
+                    "limite_por_pagina": 20,
+                    "pagina_anterior": null,
+                    "url_anterior": null,
+                    "proxima_pagina": null,
+                    "proxima_url": null
+                  },
+                  "data": [
+                    {
+                      "id": "320",
+                      "nome": "Blusão Masc Moletom",
+                      "codigo_interno": "0222",
+                      "codigo_barra": "2031754031703",
+                      "possui_variacao": "1",
+                      "possui_composicao": "0",
+                      "movimenta_estoque": "1",
+                      "peso": "0.000",
+                      "largura": "0.000",
+                      "altura": "0.000",
+                      "comprimento": "0.000",
+                      "ativo": "1",
+                      "grupo_id": "803218",
+                      "nome_grupo": "Eletrônicos",
+                      "descricao": "",
+                      "estoque": 60,
+                      "valor_custo": "80.0000",
+                      "valor_venda": "120.0000",
+                      "valores": [
+                        {
+                          "tipo_id": "90864",
+                          "nome_tipo": "Varejo",
+                          "lucro_utilizado": "15.00",
+                          "valor_custo": "80.0000",
+                          "valor_venda": "92.0000"
+                        },
+                        {
+                          "tipo_id": "90872",
+                          "nome_tipo": "Atacado",
+                          "lucro_utilizado": "30.00",
+                          "valor_custo": "80.0000",
+                          "valor_venda": "104.0000"
+                        }
+                      ],
+                      "variacoes": [
+                        {
+                          "variacao": {
+                            "id": "478",
+                            "nome": "Creme",
+                            "estoque": "10.00",
+                            "valores": [
+                              {
+                                "tipo_id": "90864",
+                                "nome_tipo": "Varejo",
+                                "lucro_utilizado": "41.18",
+                                "valor_custo": "85.0000",
+                                "valor_venda": "120.0000"
+                              },
+                              {
+                                "tipo_id": "90872",
+                                "nome_tipo": "Atacado",
+                                "lucro_utilizado": "41.18",
+                                "valor_custo": "85.0000",
+                                "valor_venda": "120.0000"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "variacao": {
+                            "id": "480",
+                            "nome": "Marrom",
+                            "estoque": "20.00",
+                            "valores": [
+                              {
+                                "tipo_id": "90864",
+                                "nome_tipo": "Varejo",
+                                "lucro_utilizado": "15.00",
+                                "valor_custo": "80.0000",
+                                "valor_venda": "92.0000"
+                              },
+                              {
+                                "tipo_id": "90872",
+                                "nome_tipo": "Atacado",
+                                "lucro_utilizado": "30.00",
+                                "valor_custo": "80.0000",
+                                "valor_venda": "104.0000"
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "variacao": {
+                            "id": "482",
+                            "nome": "Azul Escuro",
+                            "estoque": "30.00",
+                            "valores": [
+                              {
+                                "tipo_id": "90864",
+                                "nome_tipo": "Varejo",
+                                "lucro_utilizado": "15.00",
+                                "valor_custo": "80.0000",
+                                "valor_venda": "92.0000"
+                              },
+                              {
+                                "tipo_id": "90872",
+                                "nome_tipo": "Atacado",
+                                "lucro_utilizado": "30.00",
+                                "valor_custo": "80.0000",
+                                "valor_venda": "104.0000"
+                              }
+                            ]
+                          }
+                        }
+                      ],
+                      "fiscal": {
+                        "ncm": "",
+                        "cest": "",
+                        "peso_liquido": null,
+                        "peso_bruto": null,
+                        "valor_aproximado_tributos": null,
+                        "valor_fixo_pis": null,
+                        "valor_fixo_pis_st": null,
+                        "valor_fixo_confins": null,
+                        "valor_fixo_confins_st": null
+                      }
+                    },
+                    {
+                      "id": "319",
+                      "nome": "Smart TV 4K LED 50",
+                      "codigo_interno": "011111",
+                      "codigo_barra": "2086871760609",
+                      "possui_variacao": "0",
+                      "possui_composicao": "0",
+                      "movimenta_estoque": "1",
+                      "peso": "0.000",
+                      "largura": "0.000",
+                      "altura": "0.000",
+                      "comprimento": "0.000",
+                      "ativo": "1",
+                      "grupo_id": "803218",
+                      "nome_grupo": "Eletrônicos",
+                      "descricao": "",
+                      "estoque": 10,
+                      "valor_custo": "1500.2000",
+                      "valor_venda": "1725.2300",
+                      "valores": [
+                        {
+                          "tipo_id": "90864",
+                          "nome_tipo": "Varejo",
+                          "lucro_utilizado": "15.00",
+                          "valor_custo": "1500.2000",
+                          "valor_venda": "1725.2300"
+                        },
+                        {
+                          "tipo_id": "90872",
+                          "nome_tipo": "Atacado",
+                          "lucro_utilizado": "30.00",
+                          "valor_custo": "1500.2000",
+                          "valor_venda": "1950.2600"
+                        }
+                      ],
+                      "variacoes": [
+                        {
+                          "variacao": {
+                            "id": "476",
+                            "nome": "",
+                            "estoque": "10.00",
+                            "valores": [
+                              {
+                                "tipo_id": "90864",
+                                "nome_tipo": "Varejo",
+                                "lucro_utilizado": "15.00",
+                                "valor_custo": "1500.2000",
+                                "valor_venda": "1725.2300"
+                              },
+                              {
+                                "tipo_id": "90872",
+                                "nome_tipo": "Atacado",
+                                "lucro_utilizado": "30.00",
+                                "valor_custo": "1500.2000",
+                                "valor_venda": "1950.2600"
+                              }
+                            ]
+                          }
+                        }
+                      ],
+                      "fiscal": {
+                        "ncm": "85044060",
+                        "cest": "",
+                        "peso_liquido": "20.000",
+                        "peso_bruto": "20.000",
+                        "valor_aproximado_tributos": null,
+                        "valor_fixo_pis": null,
+                        "valor_fixo_pis_st": null,
+                        "valor_fixo_confins": null,
+                        "valor_fixo_confins_st": null
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token não informado ou inválido",
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": 401,
+                  "status": "error",
+                  "data": {
+                    "erro": "Unauthorized",
+                    "mensagem": "Access Token não informado!"
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Plano não permite integrar com API",
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": 402,
+                  "status": "error",
+                  "data": {
+                    "mensagem": "O seu plano atual não permite integrar com API. Por favor, contrate outro plano!"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Usuário sem permissão para o recurso"
+          },
+          "404": {
+            "description": "Registro não encontrado"
+          },
+          "429": {
+            "description": "Limite de requisições atingido (3/s, 30.000/dia por empresa)",
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": 429,
+                  "status": "error",
+                  "data": {
+                    "mensagem": "O limite de requisicoes foi atingido"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-ia": "Catálogo de produtos (cadastro), do mais novo para o mais antigo. Vale uma loja por consulta: sem loja_id, a da chave — estoque e valores são dessa loja; para outra loja passe loja_id e diga de qual loja é o número. estoque é a soma das variações na loja. valores traz o preço em cada tabela de preço (tipo_id/nome_tipo, de /tipos_valores_produtos); valor_venda da raiz é só o da primeira tabela e, em produto com variação de preço próprio, o da última variação — para preço por variação use variacoes[].variacao.valores. Para achar um produto citado use nome ou codigo (busca procura nos dois). Não há filtro por marca nem por faixa de preço aqui: marca_id e valor_inicio/valor_fim são ignorados. Para \"o mais caro/barato\" não use ordenacao=valor_venda (ordena por um campo interno que pode não bater com o preço mostrado): compare valor_venda das linhas. Para contar, use meta.total_registros. O que foi vendido e a movimentação do estoque estão nos relatórios de produtos vendidos e de estoque.",
+        "servers": [
+          {
+            "url": "https://api.gestaoclick.com/api"
+          }
+        ]
+      }
+    }
+  }
+}
