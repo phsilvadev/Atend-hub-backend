@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     whatsapp_verify_token: SecretStr = SecretStr('')
     whatsapp_qr_bridge_url: str = ''
     whatsapp_qr_bridge_token: SecretStr = SecretStr('')
+    whatsapp_embedded_config_id: str = Field(default='',pattern=r'^\d{0,40}$')
     whatsapp_app_id: str = Field(default='',pattern=r'^\d{0,40}$')
     whatsapp_credential_key: SecretStr = SecretStr('')
     whatsapp_graph_version: str = Field(default='v25.0',pattern=r'^v[0-9]{1,3}\.0$')

@@ -14,3 +14,15 @@ class WhatsAppOfficialConnection(Base):
     active: Mapped[bool]=mapped_column(Boolean,default=True)
     verified_at: Mapped[int]=mapped_column(Integer)
     version: Mapped[int]=mapped_column(Integer,default=1)
+
+
+class WhatsAppSignupAttempt(Base):
+    __tablename__ = 'whatsapp_signup_attempts'
+    state_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    company_id: Mapped[str] = mapped_column(ForeignKey('companies.id'), index=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey('users.id'))
+    session_id: Mapped[str] = mapped_column(ForeignKey('sessions.token_hash'))
+    connection_version: Mapped[int] = mapped_column(Integer)
+    expires_at: Mapped[int] = mapped_column(Integer, index=True)
+    consumed: Mapped[bool] = mapped_column(Boolean, default=False)
+    code_hash: Mapped[str | None] = mapped_column(String(64), nullable=True, unique=True)

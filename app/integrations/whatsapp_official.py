@@ -129,3 +129,29 @@ def setup_connection(token,phone_id,waba_id,action,pin=None):
         return graph.diagnostics(phone_id,waba_id)
     finally:
         graph.close()
+
+
+def exchange_signup_code(code):
+    """Meta Tech Provider onboarding step 1; code/secret never returned to client."""
+    settings = get_settings()
+    try:
+        with httpx.Client(follow_redirects=False) as client:
+            response = client.get(
+                f'https://graph.facebook.com/{settings.whatsapp_graph_version}/oauth/access_token',
+                params={'client_id': settings.whatsapp_app_id,
+                        'client_secret': settings.whatsapp_app_secret.get_secret_value(),
+                        'code': code}, timeout=8)
+            if response.status_code in {400, 401, 403}:
+                raise HTTPException(422, 'A autorização da Meta expirou ou foi recusada. Inicie novamente.')
+            if response.status_code != 200:
+                raise HTTPException(503, 'A Meta está indisponível. Inicie uma nova autorização mais tarde.')
+            data = response.json()
+            token = data.get('access_token') if isinstance(data, dict) else None
+            import re
+            if not isinstance(token, str) or not re.fullmatch(r'[\x21-\x7e]{20,4096}', token):
+                raise ValueError()
+            return token
+    except HTTPException:
+        raise
+    except (httpx.HTTPError, ValueError, TypeError):
+        raise HTTPException(503, 'Não foi possível concluir a autorização com a Meta. Inicie novamente.')

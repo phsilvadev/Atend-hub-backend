@@ -431,3 +431,9 @@ Publicação efetiva em 06/nov/2026 via CLI autenticado cashewdevops@gmail.com: 
 - [x] Publicar gateway Node dedicado com volume criptografado, configurar API, validar QR real e remoção da sessão de teste.
 
 Railway: gateway 585be7f2-5785-42ab-98e4-2ebc536029d2 e API bcfec00f-d1f0-4441-aae7-538f232695d0 em SUCCESS. Volume 500 MB montado em /data, chave AES e token em variáveis protegidas. QR real gerado sem parear telefone; sessão de validação removida com HTTP 200. Healthcheck 200, acesso anônimo e Origin 401, callback assinado para sessão inexistente 200 (ignorado, sem criar dados comerciais). 4 testes Node e 144 Pytest aprovados. Pareamento e mensagens reais continuam pendentes de leitura do QR pelo usuário.
+
+### Cadastro Incorporado Meta — desenvolvimento local
+- [x] Confirmar documentação, criar autorização de uso único vinculada à sessão/empresa, trocar código no servidor e conectar frontend. Sem push/deploy.
+- [ ] Validar conta Meta real (depende do aplicativo, configuração Login para Empresas e permissões aprovadas).
+
+Validação local do Cadastro Incorporado: suíte backend com 152 testes aprovados, mais teste adicional de conclusão concorrente aprovado no grupo de 9 testes do módulo (uma única troca e resposta 409 para duplicata); 115 Vitest e build/TypeScript aprovados. E2E Next/BFF/FastAPI/SQLite com SDK e HTTP Meta simulados valida conexão criptografada, estado de ativação separado e recusa de replay. Conta real e requisitos do aplicativo Meta permanecem pendentes; não houve push nem deploy.

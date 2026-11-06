@@ -310,3 +310,13 @@ Limites locais do teste: dez tentativas por 15min/tenant e intervalo mínimo de 
 
 ### Verificação de saúde
 `GET /health` confirma processo ativo. `GET /health/ready` confirma conexão com o banco e versão das migrations no head: 200 `{status:"ready"}` ou 503 `{status:"not_ready"}`, sem retornar detalhes internos/credenciais.
+
+## WhatsApp oficial — Cadastro Incorporado Meta
+
+Todos os endpoints exigem administrador da empresa autenticada, com trial/plano válido. POST exige origem autorizada; sem parâmetro company_id no corpo.
+
+- `GET /api/v1/integrations/whatsapp-official/embedded/config`: `{company_id, enabled, app_id, config_id, graph_version, reason}`. Retorna apenas configuração pública, sem App Secret/token.
+- `POST /api/v1/integrations/whatsapp-official/embedded/start`: corpo `{ "version": 0 }`; resposta `{company_id, state, expires_at}`. `state` é temporário e deve ficar somente em memória. Validade de cinco minutos e vínculo à sessão/empresa/usuário.
+- `POST /api/v1/integrations/whatsapp-official/embedded/complete`: corpo `{ "state": "<autorização temporária>", "code": "<código temporário do SDK>", "phone_number_id": "12345", "waba_id": "67890" }`. Troca server-side, valida conta e salva token criptografado. Resposta é o diagnóstico público da conexão oficial existente; nunca contém token.
+
+409 para autorização expirada/reutilizada, sessão divergente ou versão obsoleta; 403 para papel/origem inválidos; 422 para autorização recusada; 503 para serviço/configuração indisponível. Uma troca falha consome a autorização: iniciar novo fluxo. Registro do número e inscrição do aplicativo continuam explícitos em `/setup`, sem inferir prontidão a partir do login. Configuração e limites em [WHATSAPP_EMBEDDED_SIGNUP.md](docs/WHATSAPP_EMBEDDED_SIGNUP.md).

@@ -84,3 +84,7 @@ O catálogo é tenant-scoped e alimentado por adapter GET documentado. `product_
 
 ### Antirrobô antes da autenticação
 `services/turnstile.py` concentra a integração fixa com Cloudflare Siteverify e a validação de contexto. Os endpoints cliente/plataforma aplicam limites antes do serviço e só criam sessões/empresas após sucesso. Migração `20261106_turnstile` adiciona fingerprints de token com expiração e unicidade para replay. Ambos os Next consultam configuração pública via BFF e renderizam widget explícito, renovado a cada tentativa; token fica somente em memória. Configuração de produção falha sem chaves reais/hostnames, sem aceitar modo de teste. Segredo é exclusivo do backend.
+
+### Autorização Meta via Cadastro Incorporado
+
+SDK no cliente envia código temporário e IDs para o BFF autenticado. A API controla tentativas de cinco minutos vinculadas à sessão/empresa/usuário/versão; fingerprints de estado/código persistidos, consumo atômico, recusa de replay. Troca de código no host fixo Meta e token AES-GCM usam validação existente, com diagnóstico separado das ações explícitas de registro/inscrição. Não há endpoint público de callback OAuth da aplicação; o código vem do callback do SDK. Configuração e limitações: docs/WHATSAPP_EMBEDDED_SIGNUP.md.

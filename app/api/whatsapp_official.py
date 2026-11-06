@@ -157,3 +157,95 @@ def setup(data: Setup,context: Context=Depends(admin_context),db: Session=Depend
     audit(db,context.user,'whatsapp_official.'+data.action+'_requested')
     db.commit()
     return output(db,context.company.id)
+
+
+# Embedded Signup uses the official JS SDK; only its temporary code crosses the BFF.
+# The bearer below binds that code submission to the initiating browser session.
+class EmbeddedComplete(StrictInput):
+    state: SecretStr
+    code: SecretStr
+    phone_number_id: str = Field(pattern=r'^\d{1,40}$')
+    waba_id: str = Field(pattern=r'^\d{1,40}$')
+
+    @field_validator('state')
+    @classmethod
+    def state_format(cls, value):
+        if not re.fullmatch(r'[A-Za-z0-9_-]{40,100}', value.get_secret_value()):
+            raise ValueError('Autorização inválida')
+        return value
+
+    @field_validator('code')
+    @classmethod
+    def code_format(cls, value):
+        if not re.fullmatch(r'[\x21-\x7e]{20,4096}', value.get_secret_value()):
+            raise ValueError('Código inválido')
+        return value
+
+
+def embedded_config():
+    s = get_settings()
+    ready = bool(configured() and s.whatsapp_app_id and s.whatsapp_embedded_config_id
+                 and s.whatsapp_app_secret.get_secret_value())
+    return {'enabled': ready, 'app_id': s.whatsapp_app_id if ready else None,
+            'config_id': s.whatsapp_embedded_config_id if ready else None,
+            'graph_version': s.whatsapp_graph_version,
+            'reason': None if ready else 'A plataforma precisa configurar o Cadastro Incorporado da Meta. Você pode usar a configuração manual enquanto isso.'}
+
+
+@router.get('/embedded/config')
+def get_embedded_config(context: Context = Depends(admin_context)):
+    return {'company_id': context.company.id, **embedded_config()}
+
+
+@router.post('/embedded/start')
+def start_embedded(data: Version, context: Context = Depends(admin_context), db: Session = Depends(get_db)):
+    import secrets
+    from sqlalchemy import delete
+    from app.core.security import digest
+    from app.models.whatsapp_official import WhatsAppSignupAttempt
+    if not embedded_config()['enabled']:
+        raise HTTPException(503, 'O Cadastro Incorporado da Meta ainda não foi configurado pela plataforma.')
+    throttle(db, f'meta-signup:{context.company.id}', 10)
+    existing = db.get(Connection, context.company.id)
+    if (existing.version if existing else 0) != data.version:
+        raise HTTPException(409, 'A conexão foi atualizada. Recarregue antes de continuar.')
+    state = secrets.token_urlsafe(32)
+    db.execute(delete(WhatsAppSignupAttempt).where(WhatsAppSignupAttempt.expires_at < now() - 86400))
+    db.add(WhatsAppSignupAttempt(state_hash=digest(state), company_id=context.company.id,
+        user_id=context.user.id, session_id=context.session.token_hash, connection_version=data.version,
+        expires_at=now()+300, consumed=False))
+    db.commit()
+    return {'company_id': context.company.id, 'state': state, 'expires_at': now()+300}
+
+
+@router.post('/embedded/complete')
+def complete_embedded(data: EmbeddedComplete, context: Context = Depends(admin_context), db: Session = Depends(get_db)):
+    from app.core.security import digest
+    from app.models.whatsapp_official import WhatsAppSignupAttempt
+    from app.integrations.whatsapp_official import exchange_signup_code
+    if not embedded_config()['enabled']:
+        raise HTTPException(503, 'O Cadastro Incorporado da Meta ainda não foi configurado pela plataforma.')
+    attempt = db.get(WhatsAppSignupAttempt, digest(data.state.get_secret_value()))
+    if not attempt or attempt.company_id != context.company.id or attempt.user_id != context.user.id or attempt.session_id != context.session.token_hash or attempt.expires_at <= now() or attempt.consumed:
+        raise HTTPException(409, 'Autorização inválida, expirada ou já utilizada. Inicie novamente.')
+    version = attempt.connection_version
+    existing = db.get(Connection, context.company.id)
+    if (existing.version if existing else 0) != version:
+        raise HTTPException(409, 'A conexão foi atualizada. Inicie novamente.')
+    try:
+        claimed = db.execute(update(WhatsAppSignupAttempt).where(
+            WhatsAppSignupAttempt.state_hash == attempt.state_hash,
+            WhatsAppSignupAttempt.consumed.is_(False),
+            WhatsAppSignupAttempt.expires_at > now()).values(
+                consumed=True, code_hash=digest(data.code.get_secret_value())))
+        if claimed.rowcount != 1:
+            db.rollback()
+            raise HTTPException(409, 'Esta autorização já foi utilizada. Inicie novamente.')
+        db.commit()  # Consume before external call; even failed exchanges cannot be replayed.
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(409, 'Este código já foi utilizado. Inicie novamente.')
+    token = exchange_signup_code(data.code.get_secret_value())
+    # Reuse membership/app validation, AES-GCM, version CAS and tenant permissions.
+    return connect(Credentials(phone_number_id=data.phone_number_id, waba_id=data.waba_id,
+                               access_token=SecretStr(token), version=version), context, db)
