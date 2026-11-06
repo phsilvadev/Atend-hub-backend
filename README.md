@@ -214,7 +214,7 @@ Railpack usa Python 3.12, PostgreSQL por referência de serviço, migrações em
 - Superadmin: https://superadmin-production-3d47.up.railway.app/login
 - Prontidão da API: https://api-production-5aaf.up.railway.app/health/ready
 
-Deploys SUCCESS por upload direto do CLI; instruções de atualização em docs/RAILWAY.md. PostgreSQL/migrations e Turnstile real configurados. Login exige confirmação humana; nenhum usuário comercial de demonstração foi criado. Primeiro superadministrador aguarda configuração inicial. Autodeploy GitHub permanece separado do deploy direto.
+Deploys SUCCESS por upload direto do CLI; instruções de atualização em docs/RAILWAY.md. PostgreSQL/migrations e Turnstile real configurados. Login exige confirmação humana; nenhum usuário comercial de demonstração foi criado. Primeiro superadministrador provisionado por fluxo privado, com senha entregue fora do Git. Autodeploy GitHub permanece separado do deploy direto.
 
 ### Primeiro administrador em ambiente hospedado
 Além do comando interativo `python -m app.cli.platform_admin`, o pre-deploy pode executar `python -m app.cli.platform_bootstrap` usando as variáveis privadas `PLATFORM_ADMIN_BOOTSTRAP_EMAIL` e `PLATFORM_ADMIN_BOOTSTRAP_PASSWORD`. Sem nenhuma delas, o provisionamento é ignorado; configuração parcial falha de forma segura. Se o e-mail já existir, senha/status/cadastro permanecem intactos. Não existe endpoint público ou formulário para esse cadastro. Após criar, esvazie as duas variáveis privadas e renove o deployment para remover esses valores do ambiente ativo. A senha nunca deve ir para argumentos do shell, logs ou Git.
@@ -222,3 +222,5 @@ Além do comando interativo `python -m app.cli.platform_admin`, o pre-deploy pod
 ### Conectar com a Meta (desenvolvimento local)
 
 O Cadastro Incorporado permite ao administrador autorizar o WhatsApp na janela Meta, sem copiar token. Configure `WHATSAPP_EMBEDDED_CONFIG_ID` além de App ID/App Secret e chave de criptografia já existentes; aplique `alembic upgrade head`. Segredos ficam somente no backend. O app Meta e suas permissões/domínios precisam estar preparados. Sem isso, o botão fica indisponível, com alternativa manual. Integração real ainda requer configuração do aplicativo e validação autorizada. Consulte [o guia](docs/WHATSAPP_EMBEDDED_SIGNUP.md).
+
+Cadastro Incorporado publicado com API cc810a36-086a-4c3d-ac42-80c652d8fbb5 e cliente f94d2b51-c634-4f38-9f42-9efe6c5c3a15 (SUCCESS). Conta Meta real continua pendente: App ID, App Secret e Config ID ainda não configurados em produção.

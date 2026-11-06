@@ -410,7 +410,7 @@ Preparação Railway: projeto privado AtendeHub criado, ambiente production e se
 - [x] Validar deployments SUCCESS, readiness PostgreSQL/migrations, páginas públicas, BFF e prints desktop/mobile.
 - [x] Verificar Turnstile real habilitado, sem modo de teste, recusa sem token e de origem não autorizada, sem sessão emitida.
 - [ ] Concluir login/cadastro real com confirmação humana do Turnstile; widget aguardou ação humana no navegador automatizado.
-- [ ] Provisionar primeiro superadministrador após definição do e-mail pelo usuário.
+- [x] Provisionar primeiro superadministrador após definição do e-mail pelo usuário.
 
 Preparação de produção: 141 Pytest aprovados, incluindo normalização de URL PostgreSQL para psycopg3, readiness com migrations e credencial Firebase por SecretStr JSON. Configurações TOML validadas; aplicação ainda não foi declarada publicada. Segredos configurados via variáveis privadas do backend; desenvolvimento preserva SQLite e par Turnstile oficial de teste.
 
@@ -424,8 +424,8 @@ Publicação efetiva em 06/nov/2026 via CLI autenticado cashewdevops@gmail.com: 
 - [ ] Migrar railway.toml para IaC antes de 01/dez/2026 conforme aviso do CLI; formato atual segue operacional até essa data.
 
 ### Primeiro acesso de superadministrador
-- [ ] 🔄 Criar pedro6489@gmail.com com senha aleatória, sem alterar conta preexistente.
-- [ ] 🔄 Validar provisionamento no PostgreSQL de produção, remover variáveis temporárias e entregar arquivo privado.
+- [x] Criar pedro6489@gmail.com com senha aleatória, sem alterar conta preexistente.
+- [x] Validar provisionamento no PostgreSQL de produção, esvaziar variáveis temporárias e entregar arquivo privado.
 
 ### Correção QR Code em produção
 - [x] Publicar gateway Node dedicado com volume criptografado, configurar API, validar QR real e remoção da sessão de teste.
@@ -437,3 +437,5 @@ Railway: gateway 585be7f2-5785-42ab-98e4-2ebc536029d2 e API bcfec00f-d1f0-4441-a
 - [ ] Validar conta Meta real (depende do aplicativo, configuração Login para Empresas e permissões aprovadas).
 
 Validação local do Cadastro Incorporado: suíte backend com 152 testes aprovados, mais teste adicional de conclusão concorrente aprovado no grupo de 9 testes do módulo (uma única troca e resposta 409 para duplicata); 115 Vitest e build/TypeScript aprovados. E2E Next/BFF/FastAPI/SQLite com SDK e HTTP Meta simulados valida conexão criptografada, estado de ativação separado e recusa de replay. Conta real e requisitos do aplicativo Meta permanecem pendentes; não houve push nem deploy.
+
+Publicação Meta/ajuda autorizada em 06/11/2026: código backend ceb83dc e frontend d138042 em origin/development. API cc810a36-086a-4c3d-ac42-80c652d8fbb5 e cliente f94d2b51-c634-4f38-9f42-9efe6c5c3a15 em SUCCESS. Readiness 200 confirma PostgreSQL e head de migrations; endpoint Meta sem sessão 401, ajuda anônima redireciona. Pre-deploy registrou INITIAL_PLATFORM_ADMIN_NOT_REQUESTED. App ID, App Secret e Config ID Meta ausentes nas variáveis reais (checados por presença, sem exibir valores); onboarding real segue bloqueado. Trello atualizado, central de ajuda concluída e Meta/IA de suporte pendentes no escopo correspondente.
