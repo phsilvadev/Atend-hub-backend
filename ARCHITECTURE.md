@@ -69,3 +69,9 @@ Cadastro de credenciais é separado de registro do número e inscrição WABA. A
 ## GestãoClick — configuração sem integração externa
 
 Tabela gestaoclick_connections com PK company_id, URL normalizada, par de tokens cifrado, versão e data. AAD específico `atendehub:gestaoclick:v1:{company_id}:{url}` impede troca do ciphertext entre tenants/endereços e entre provedores. Reusa a chave AES-256 existente do backend, sem modificar o formato de credenciais WhatsApp. Não há transporte HTTP ERP, fila ou sincronização neste recorte; nenhuma URL fornecida é acessada. Antes de implementar transporte, validar domínio do servidor contra OpenAPI e aplicar proteção DNS/SSRF/redirects, permissões e limites reais.
+
+## GestãoClick — adaptador restrito de acesso
+
+`app/integrations/gestaoclick.py` encapsula um único GET /lojas do OpenAPI fornecido, com servidor fixo HTTPS, headers privados, redirect bloqueado, timeout e limite de 1 MiB/1000 lojas. Não há host fornecido pelo cliente no transporte. Modelo ganha cache autorizado de lojas, teste/data/erro, início da tentativa e seleção. Versão e reautorização após I/O impedem aplicar resultado obsoleto a credenciais alteradas ou acesso revogado. A chamada externa ocorre sem lock de escrita; alterações finais são serializadas por empresa.
+
+A seleção é validada contra o cache do tenant, sem inferir permissão de catálogo. Não há fila, sincronização ou escrita ERP. O OpenAPI inclui outros servidores (CRM/assinatura digital), intencionalmente fora da allowlist deste recorte. Contrato mínimo e hash do arquivo recebido estão em docs/contracts e docs/GESTAOCLICK_ACCESS.md. Em testes, só o transporte ERP é simulado; autenticação, criptografia, API e banco continuam reais.

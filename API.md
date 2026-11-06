@@ -277,3 +277,13 @@ Admin autenticado de tenant ativo/trial válido, Origin em POST e versionamento.
 - `GET /api/v1/integrations/gestaoclick`: `{company_id,enabled,base_url,has_credentials,status,version,updated_at}`. Status not_configured/credentials_saved. Sem tokens/ciphertext.
 - `POST /api/v1/integrations/gestaoclick`: `{version,base_url,access_token?,secret_access_token?}`. Versão inicial 0. HTTPS com host de domínio e caminho /api ou /v1, sem userinfo/query/fragment/porta não padrão/IP literal. Tokens ASCII visível até 4096 caracteres, opcionais somente para reutilizar valores com mesma URL. Nenhum company_id é aceito no corpo. 409 versão obsoleta, 422 dados ausentes/inválidos, 503 chave de criptografia indisponível.
 - `POST /api/v1/integrations/gestaoclick/remove`: `{version}`. Apaga credenciais e URL locais e incrementa versão; preserva controle de concorrência. Não revoga credenciais no GestãoClick.
+
+## GestãoClick — consulta de lojas autorizadas
+
+Atualização do cadastro anterior (sem transporte): estas ações explícitas passam a consultar o ERP.
+
+- `POST /api/v1/integrations/gestaoclick/test` — `{version}`. Apenas admin de tenant ativo; chave é lida/decifrada no backend. Faz um GET /lojas no servidor fixo confirmado no OpenAPI. Salva lojas/data/erro e incrementa versão. Erros ERP 401/402/403 viram 422 com mensagem segura; 429 preserva 429; timeout/servidor/contrato inválido viram 503. Servidor não autorizado retorna 422 antes de enviar as chaves. Falhas remotas persistem `test_error_code`, limpam lojas/seleção; consulte GET após erro para obter a versão atual. Tentativas locais bloqueadas antes da consulta não limpam diagnóstico anterior.
+- `POST /api/v1/integrations/gestaoclick/store` — `{version,store_id}`. Escolhe somente ID da lista autorizada persistida no mesmo tenant; teste deve ter sido bem-sucedido há no máximo 900s. Não há outra chamada ERP nesta ação. 422 ID fora da lista, 409 versão/teste ausente ou vencido.
+- `GET /api/v1/integrations/gestaoclick` — acrescenta stores (`[{id,name}]`), selected_store_id, tested_at e test_error_code. Status possíveis: not_configured, credentials_saved, access_validated, test_failed. Os estados são resultado da última consulta, não monitoração contínua nem comprovação de acesso ao catálogo.
+
+Limites locais do teste: dez tentativas por 15min/tenant e intervalo mínimo de um segundo; 429 local pode conter Retry-After. Mudança/remoção de configuração durante a chamada descarta a resposta velha com 409. Seleção não muda o vínculo fixo de usuário/loja no GestãoClick.

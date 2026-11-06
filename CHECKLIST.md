@@ -355,3 +355,11 @@ Validação: 82 Pytest, 95 Vitest, lint/typecheck/build e 3 E2E aprovados. Cober
 - [ ] Validar acesso ao ERP e sincronizações após OpenAPI da conta.
 
 Validação direcionada desta entrega: 3 Pytest de cadastro/edição/remoção, versão, criptografia e isolamento/contexto, papel e URLs inválidas; 2 Vitest do contrato; 1 E2E com API real/SQLite temporário e dados fictícios aprovado, além de lint/typecheck/build. Migration aplicada ao SQLite local sem inserir credenciais de demonstração. Prints desktop/mobile gerados. Sem chamadas GestãoClick/OpenAI, sincronização ou Docker. Status limita-se a credenciais cadastradas; OpenAPI, validação real e seleção de loja seguem pendentes.
+
+### GestãoClick — teste de acesso e loja
+- [x] Ler OpenAPI 3.1 fornecido pelo usuário: servidor principal api.gestaoclick.com/api, headers e GET /lojas.
+- [x] Implementar teste de acesso, erros seguros, limite de tentativas e seleção persistida de loja por empresa.
+- [x] Integrar controles reais ao painel, testar e gerar prints.
+- [ ] Validar credenciais reais autorizadas e sincronizar produtos/clientes em etapa futura.
+
+Validação: testes automatizados da consulta /lojas, seleção persistida, criptografia, isolamento, permissões, limite de tentativas, falhas do ERP e alterações concorrentes aprovados. Dois E2E aprovados com API e SQLite temporário reais e respostas HTTP do ERP simuladas. Prints desktop/mobile gerados. Não houve validação com conta real, sincronização nem execução de Docker.

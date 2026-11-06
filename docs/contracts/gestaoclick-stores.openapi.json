@@ -1,0 +1,203 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "API GestãoClick — recorte de lojas",
+    "version": "1.0.0",
+    "description": "Recorte do OpenAPI fornecido pelo usuário. Apenas documentação; sem credenciais."
+  },
+  "servers": [
+    {
+      "url": "https://api.gestaoclick.com/api",
+      "description": "Cadastros, produtos e serviços"
+    }
+  ],
+  "security": [
+    {
+      "accessToken": [],
+      "secretAccessToken": []
+    }
+  ],
+  "paths": {
+    "/lojas": {
+      "get": {
+        "tags": [
+          "Cadastros, produtos e serviços"
+        ],
+        "summary": "Listar lojas",
+        "operationId": "core_lojas_listar",
+        "x-modulo": "core",
+        "x-recurso": "lojas",
+        "x-operacao": "listar",
+        "parameters": [
+          {
+            "name": "nome",
+            "in": "query",
+            "required": false,
+            "description": "string — nome da loja (busca parcial)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pagina",
+            "in": "query",
+            "description": "Página da listagem",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "description": "Registros por página (padrão 20, máximo 100; acima de 100 volta 100 sem avisar)",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "ordenacao",
+            "in": "query",
+            "description": "Campo de ordenação",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "direcao",
+            "in": "query",
+            "description": "asc ou desc",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "nome": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "code": 200,
+                  "status": "success",
+                  "data": [
+                    {
+                      "id": "1",
+                      "nome": "Matriz"
+                    },
+                    {
+                      "id": "2",
+                      "nome": "Filial"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token não informado ou inválido",
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": 401,
+                  "status": "error",
+                  "data": {
+                    "erro": "Unauthorized",
+                    "mensagem": "Access Token não informado!"
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "Plano não permite integrar com API",
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": 402,
+                  "status": "error",
+                  "data": {
+                    "mensagem": "O seu plano atual não permite integrar com API. Por favor, contrate outro plano!"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Usuário sem permissão para o recurso"
+          },
+          "404": {
+            "description": "Registro não encontrado"
+          },
+          "429": {
+            "description": "Limite de requisições atingido (3/s, 30.000/dia por empresa)",
+            "content": {
+              "application/json": {
+                "example": {
+                  "code": 429,
+                  "status": "error",
+                  "data": {
+                    "mensagem": "O limite de requisicoes foi atingido"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-permissao": "Lojas/index",
+        "x-ia": "Consulte antes de dar um número que dependa de loja: o loja_id dos outros recursos sai daqui. Entram só as lojas que o usuário da chave acessa — não é, necessariamente, a empresa inteira. Busca por nome sem resultado devolve data com um item vazio ([[]]): trate como nenhuma loja.",
+        "description": "Lista as lojas que o usuário da chave acessa, só com id e nome, sem paginação. Os dados da loja (CNPJ, endereço, regime tributário) estão no detalhe, GET /lojas/{id}.\n\n**Permissão exigida:** `Lojas/index` (a mesma da tela do sistema).",
+        "servers": [
+          {
+            "url": "https://api.gestaoclick.com/api"
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "accessToken": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "access-token"
+      },
+      "secretAccessToken": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "secret-access-token"
+      }
+    }
+  }
+}
