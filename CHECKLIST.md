@@ -379,7 +379,14 @@ Validação desta etapa: 108 Pytest na suíte completa e 11 testes específicos 
 - [x] Mostrar status de imagem e modal com arrastar/soltar, prévia e envio.
 - [x] Testar segurança, isolamento, preservação na sincronização e gerar prints.
 - [x] Configurar bucket informado no .env local do backend (ignorado pelo Git).
-- [ ] Configurar identidade/credencial de serviço e validar envio real no Firebase — bloqueio: DefaultCredentialsError, identidade ainda ausente.
+- [x] Configurar identidade/credencial de serviço e validar envio real no Firebase — credencial protegida fora do repositório, teste real aprovado.
 - [ ] Preparar reconciliação operacional de objetos órfãos após falhas entre Storage e banco.
 
 Validação de imagens: suíte backend com 122 testes aprovados e 13 testes específicos de imagens aprovados (incluindo configuração server-side adicionada depois); 105 Vitest, lint/typecheck/build e dois E2E aprovados. Upload, prévia, leitura privada, miniatura após recarregar, CSRF e isolamento verificados via Next/API reais com SDK Storage simulado. Arquivos inválidos/animados/grandes, concorrência, revogação, substituição e preservação na sincronização cobertos no backend. Migration aplicada ao SQLite; prints desktop/mobile gerados com fixture fictícia. FIREBASE_STORAGE_BUCKET configurado localmente; teste real de credenciais retornou DefaultCredentialsError, sem envio ao bucket. Nenhuma chave privada no Git/frontend. Sem Docker.
+
+### Validação real Firebase — credencial fornecida
+- [x] Proteger credencial fora dos repositórios e configurar .env; confirmar acesso ao bucket.
+- [x] Validar upload/leitura real pelo navegador, isolamento e acesso anônimo.
+- [x] Remover objetos temporários e registrar evidências sem segredos.
+
+Validação real em 06/nov/2026: E2E com Next/API/SQLite temporário e Firebase Admin SDK REAL aprovado. Upload WebP pelo modal, leitura autenticada/miniatura após recarregar, acesso sem sessão 401, outra empresa 404 e CSRF 403. Consulta anônima direta ao objeto no Google Storage retornou 403 AccessDenied; objeto sem token público de download. Um objeto temporário removido e ausência confirmada no bucket. Credencial com permissão 600 em diretório 700 fora dos repositórios; .env ignorado pelo Git. Produtos/empresa eram fixtures temporárias e apenas o ERP foi simulado. Print real gerado. Nenhuma chave ou conteúdo do JSON foi exibido/commitado.

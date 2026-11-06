@@ -11,7 +11,7 @@ No `.env` do backend:
 FIREBASE_STORAGE_BUCKET=atende-ia-6d09f.firebasestorage.app
 GOOGLE_APPLICATION_CREDENTIALS=/caminho/fora-do-repositorio/firebase-service-account.json
 ```
-O bucket foi configurado localmente em 06/nov/2026. O teste encontrou `DefaultCredentialsError`: o ambiente ainda não tem identidade de serviço disponível. Upload real permanece pendente; não foi enviado nenhum arquivo ao bucket real.
+Bucket e credencial local configurados em 06/nov/2026. A credencial fornecida foi instalada fora dos repositórios em diretório com permissão 700/arquivo 600, e seu caminho foi registrado somente no .env ignorado pelo Git. O bloqueio anterior DefaultCredentialsError foi resolvido. Upload/leitura pelo navegador e acesso negado entre empresas foram validados com Firebase real; o objeto temporário foi excluído e a ausência confirmada. O acesso anônimo direto retornou 403 AccessDenied, sem token público no objeto. Isso valida o objeto criado, sem alegar revisão de todas as regras/IAM do projeto.
 
 Para desenvolvimento, em Firebase Console → Configurações do projeto → Contas de serviço, gere uma credencial de serviço para o backend e mantenha o JSON fora do repositório, com acesso restrito ao processo. Informe somente o caminho no `.env`; o backend usa `credentials.Certificate` para esse caminho. Em infraestrutura com identidade de workload, deixe a variável vazia e use Application Default Credentials. Reinicie o backend após configurar/rotacionar a identidade. Não use `NEXT_PUBLIC_*` para a chave e não coloque o JSON no frontend.
 
@@ -30,3 +30,5 @@ O bucket deve existir, com Cloud Storage/Firebase Storage habilitado e faturamen
 
 ## Validação
 Pytest cobre SDK simulado, validação real de imagens, isolamento, papéis, revogação durante upload, concorrência, falhas, substituição e preservação na importação ERP. E2E cobre Next → API → SDK simulado, arrastar/soltar, prévia, persistência, miniatura autenticada, mobile e CSRF. A fixture gráfica de produto é fictícia e existe somente nos testes. Nenhuma simulação é ativável por flag na API de produção.
+
+Teste real reproduzível pelo frontend: `E2E_FIREBASE_REAL=1 E2E_GESTAOCLICK_STUB=1` com `BACKEND_SOURCE_DIR` explícito e credencial local configurada. O runner usa SQLite temporário; somente o ERP é simulado. A verificação/limpeza usa as referências desse banco/empresa de teste, nunca objetos de outras empresas. Não habilite E2E_FIREBASE_STORAGE_STUB junto ao modo real.
