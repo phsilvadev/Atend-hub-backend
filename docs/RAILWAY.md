@@ -31,3 +31,5 @@ Nenhuma credencial é registrada neste documento. Preparação não é autoriza�
 
 ## Bloqueio atual da fonte GitHub
 A conta foi conectada pelo usuário, mas a API Railway ainda retorna `User does not have access to the repo` para os três repositórios. É necessário autorizar o aplicativo Railway nos repositórios/conta corretos em https://github.com/settings/installations. Não alterar a visibilidade do repositório privado para contornar esse controle. Até resolver, apenas PostgreSQL está com deployment SUCCESS; frontend/API não foram declarados publicados.
+
+Diagnóstico posterior: usuário confirmou que usa outra conta Railway no navegador. Os IDs/domínios deste documento pertencem à conta da integração original cashewdevops@gmail.com. Reconectar o app Railway à conta desejada antes de continuar; conferir projeto/workspace/variáveis nesse novo contexto, sem assumir que esses recursos já pertencem à nova conta. Tentativa de fallback CLI foi cancelada antes do login/envio; nenhuma aplicação publicada.
