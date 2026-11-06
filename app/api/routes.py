@@ -7,6 +7,7 @@ from app.core.database import get_db
 from app.core.security import now, throttle, passwords
 from app.models.auth import User, Session, Plan
 from app.schemas.auth import LoginInput, RegisterInput, UserInput, UserUpdate, UserOutput, IdentityOutput
+from app.services import turnstile
 from app.services import auth
 from app.repositories.users import in_company
 from app.schemas.company import CompanySettingsInput, CompanySettingsOutput
@@ -29,6 +30,7 @@ def limit_auth(request, db, email, action, limit):
 @router.post('/auth/register', response_model=IdentityOutput, status_code=201)
 def register(data: RegisterInput, request: Request, response: Response, db: DBSession = Depends(get_db), settings: Settings = Depends(get_settings)):
     limit_auth(request, db, data.email, 'register', 5)
+    turnstile.verify(db, settings, data.challenge_token, 'client_register')
     user, company, token, lifetime = auth.register(db, data, settings)
     set_session(response, token, lifetime, data.remember, settings)
     return identity(user, company)
@@ -36,6 +38,7 @@ def register(data: RegisterInput, request: Request, response: Response, db: DBSe
 @router.post('/auth/login', response_model=IdentityOutput)
 def login(data: LoginInput, request: Request, response: Response, db: DBSession = Depends(get_db), settings: Settings = Depends(get_settings)):
     limit_auth(request, db, data.email, 'login', 10)
+    turnstile.verify(db, settings, data.challenge_token, 'client_login')
     user, company, token, lifetime = auth.login(db, data, settings)
     set_session(response, token, lifetime, data.remember, settings)
     return identity(user, company)
@@ -130,3 +133,8 @@ def company_subscription(context: Context = Depends(current_context), db: DBSess
         'active_users': db.scalar(select(func.count()).select_from(User).where(User.company_id == context.company.id, User.active.is_(True))),
         'billing_enabled': False,
     }
+
+
+@router.get("/auth/challenge")
+def challenge_configuration(settings: Settings = Depends(get_settings)):
+    return turnstile.configuration(settings)

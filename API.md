@@ -304,3 +304,6 @@ Limites locais do teste: dez tentativas por 15min/tenant e intervalo mínimo de 
 - `GET /api/v1/products/{id}/image`: usuários ativos da mesma empresa, WebP autenticado e sem cache. 404 para produto alheio/sem imagem; 401 sessão inválida; 503 falha de armazenamento.
 - Upload: 409 versão alterada, 413 tamanho/arquivo vazio, 415 tipo não permitido, 422 imagem inválida, 429 limite de tentativas, 503 configuração/Storage indisponível. Falhas não atualizam a imagem anterior.
 - `GET /api/v1/products` inclui `image_upload_enabled` no envelope e `has_image`, `image_version`, `image_updated_at` em cada item. Imagens locais são preservadas na sincronização ERP. Veja `docs/FIREBASE_STORAGE.md` para credenciais/IAM e regras privadas.
+
+### Proteção antirrobô na autenticação
+`GET /api/v1/auth/challenge` e `GET /api/v1/platform/auth/challenge` retornam `{enabled,site_key,testing}`. Login/cadastro do cliente e login da plataforma aceitam `challenge_token` (opcional no schema para desenvolvimento desativado, obrigatório com Turnstile habilitado). A API valida Siteverify, domínio, action, validade e reuso antes de autenticar/criar registros. Token ausente/inválido/expirado/reutilizado: 403, sem cookie/sessão nova; provedor indisponível: 503. Dados inválidos: 422. Limites existentes: 429. Consulte `docs/ANTIBOT.md` para chaves, ambientes e limites do modo de teste.

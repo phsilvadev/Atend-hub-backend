@@ -9,7 +9,7 @@ from app.api.dependencies import active_tenant
 from app.schemas.auth import LoginInput
 from app.schemas.knowledge import KnowledgeInput, KnowledgeEdit, PublishInput, VersionInput, ImportInput
 from app.models.knowledge import KnowledgeEntry, KnowledgeRevision, KnowledgeImport
-from app.services import platform_auth as auth, knowledge as service
+from app.services import platform_auth as auth, knowledge as service, turnstile
 
 router=APIRouter(prefix='/api/v1/platform',tags=['Plataforma e base comum'])
 public_router=APIRouter(prefix='/api/v1/knowledge',tags=['Conhecimento publicado'])
@@ -18,6 +18,7 @@ public_router=APIRouter(prefix='/api/v1/knowledge',tags=['Conhecimento publicado
 def login(data:LoginInput,request:Request,response:Response,db=Depends(get_db),settings=Depends(get_settings)):
     ip=request.client.host if request.client else 'unknown'
     throttle(db,f'platform.login.ip:{ip}',50);throttle(db,f'platform.login.email:{data.email}',10)
+    turnstile.verify(db,settings,data.challenge_token,'platform_login')
     admin,token=auth.login(db,data)
     response.set_cookie(auth.PLATFORM_COOKIE,token,max_age=auth.LIFETIME,httponly=True,secure=settings.cookie_secure,samesite='lax',path='/api/v1/platform')
     return {'id':admin.id,'name':admin.name,'role':'platform_admin'}
@@ -102,3 +103,8 @@ def published_detail(entry_id:UUID,context=Depends(active_tenant),db=Depends(get
     entry=service.get_entry(db,entry_id)
     if not entry.active or entry.published_revision is None: raise HTTPException(404,'Conteúdo não encontrado.')
     return service.entry_output(db,entry,True)
+
+
+@router.get("/auth/challenge")
+def challenge_configuration(settings=Depends(get_settings)):
+    return turnstile.configuration(settings)

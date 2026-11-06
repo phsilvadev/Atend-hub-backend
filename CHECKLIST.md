@@ -390,3 +390,13 @@ Validação de imagens: suíte backend com 122 testes aprovados e 13 testes espe
 - [x] Remover objetos temporários e registrar evidências sem segredos.
 
 Validação real em 06/nov/2026: E2E com Next/API/SQLite temporário e Firebase Admin SDK REAL aprovado. Upload WebP pelo modal, leitura autenticada/miniatura após recarregar, acesso sem sessão 401, outra empresa 404 e CSRF 403. Consulta anônima direta ao objeto no Google Storage retornou 403 AccessDenied; objeto sem token público de download. Um objeto temporário removido e ausência confirmada no bucket. Credencial com permissão 600 em diretório 700 fora dos repositórios; .env ignorado pelo Git. Produtos/empresa eram fixtures temporárias e apenas o ERP foi simulado. Print real gerado. Nenhuma chave ou conteúdo do JSON foi exibido/commitado.
+
+### Proteção antirrobô antes da hospedagem
+- [x] Validar Turnstile no backend em cadastro/login do cliente e login da plataforma; preservar rate limiting.
+- [x] Integrar widget nos três formulários com expiração, erro e renovação do token.
+- [x] Testar bloqueios, replay, modo de teste e gerar prints.
+- [ ] Configurar chaves reais/domínios autorizados e publicar no Railway após validar produção — pendente Site Key/Secret Key reais do Turnstile e configuração de produção (PostgreSQL/HTTPS/origens).
+
+Validação antirrobô: 138 Pytest, 109 Vitest do cliente e 15 do superadmin aprovados; builds dos dois Next e E2E de cliente/superadmin aprovados com widget e Siteverify oficiais usando par público de TESTE. Testes backend sem modo dummy cobrem host/action incorretos, token ausente, replay persistente, expiração, indisponibilidade e senha ainda obrigatória. Cadastro e login do cliente funcionam; senha incorreta renova o desafio; login da plataforma funciona e recusa POST sem token. Prints desktop/mobile gerados; dados somente em SQLite temporário. Produção não aceita modo/chaves de teste e nenhum deploy Railway foi iniciado sem as chaves reais. Segredo fica somente no backend.
+
+Preparação Railway: projeto privado AtendeHub criado, ambiente production e serviços vazios api/cliente/superadmin com domínios reservados. Ainda sem fonte/deployment; banco/variáveis de produção e chaves Turnstile reais pendentes. Endereços de cliente/superadmin informados para cadastro no widget. Plano técnico em docs/RAILWAY.md do backend.

@@ -1,5 +1,5 @@
 from typing import Literal
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, SecretStr, field_validator
 
 class StrictInput(BaseModel):
     model_config = ConfigDict(extra='forbid')
@@ -8,6 +8,7 @@ class LoginInput(StrictInput):
     email: EmailStr
     password: str = Field(min_length=1, max_length=128)
     remember: bool = False
+    challenge_token: SecretStr | None = Field(default=None, min_length=1, max_length=2048)
 
     @field_validator('email', mode='before')
     @classmethod

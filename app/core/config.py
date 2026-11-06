@@ -19,6 +19,11 @@ class Settings(BaseSettings):
     whatsapp_public_webhook_url: str = ''
     google_application_credentials: str = ''
     firebase_storage_bucket: str = Field(default="", pattern=r"^[a-z0-9][a-z0-9._-]{1,220}[a-z0-9]$|^$")
+    turnstile_enabled: bool = False
+    turnstile_site_key: str = ''
+    turnstile_secret_key: SecretStr = SecretStr('')
+    turnstile_allowed_hostnames: list[str] = []
+    turnstile_testing: bool = False
     cookie_secure: bool = False
     session_hours: int = Field(default=12, ge=1, le=168)
     remember_days: int = Field(default=7, ge=1, le=30)
@@ -33,7 +38,16 @@ class Settings(BaseSettings):
             parsed=urlsplit(self.whatsapp_qr_bridge_url)
             if parsed.username or parsed.password or parsed.query or parsed.fragment or parsed.path not in ('','/') or not parsed.hostname or (parsed.scheme != 'https' and not (parsed.scheme == 'http' and parsed.hostname in ('localhost','127.0.0.1','::1'))):
                 raise ValueError('QR gateway requires HTTPS or localhost HTTP, without credentials or path')
+        if self.turnstile_enabled:
+            if not self.turnstile_site_key or not self.turnstile_secret_key.get_secret_value():
+                raise ValueError('Turnstile requires site and secret keys')
+            if not self.turnstile_testing and not self.turnstile_allowed_hostnames:
+                raise ValueError('Turnstile requires an explicit hostname allowlist')
+            if any(not host or '/' in host or ':' in host or '*' in host or host != host.lower() for host in self.turnstile_allowed_hostnames):
+                raise ValueError('Use exact lowercase Turnstile hostnames, without scheme, wildcard or port')
         if self.app_env == 'production':
+            if not self.turnstile_enabled or self.turnstile_testing or self.turnstile_site_key.startswith(('1x000000', '2x000000', '3x000000')) or self.turnstile_secret_key.get_secret_value().startswith(('1x000000', '2x000000', '3x000000')):
+                raise ValueError('Production requires Turnstile with real credentials and an explicit hostname allowlist')
             if not self.cookie_secure or not self.allowed_origins or any(not o.startswith('https://') for o in self.allowed_origins):
                 raise ValueError('Production requires secure cookies and explicit HTTPS origins')
             if self.database_url.startswith('sqlite'):

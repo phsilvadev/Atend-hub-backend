@@ -12,6 +12,8 @@ def database(tmp_path, monkeypatch):
     url = f'sqlite:///{tmp_path}/test.db'
     monkeypatch.setenv('DATABASE_URL', url)
     monkeypatch.setenv('APP_ENV', 'development')
+    monkeypatch.setenv('TURNSTILE_ENABLED', 'false')
+    monkeypatch.setenv('TURNSTILE_TESTING', 'false')
     get_settings.cache_clear()
     command.upgrade(Config('alembic.ini'), 'head')
     engine = make_engine(url)
