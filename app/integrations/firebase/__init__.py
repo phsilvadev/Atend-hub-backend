@@ -1,0 +1,1 @@
+"""Firebase adapters (server only)."""

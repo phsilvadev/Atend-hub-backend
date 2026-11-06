@@ -16,6 +16,10 @@ class Product(Base):
     active: Mapped[bool] = mapped_column(Boolean)
     has_variations: Mapped[bool] = mapped_column(Boolean)
     synced_at: Mapped[int] = mapped_column(Integer)
+    image_object: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    image_generation: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    image_version: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    image_updated_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
 class ProductSync(Base):
     __tablename__ = 'product_syncs'

@@ -13,3 +13,7 @@ data/
 htmlcov/
 node_modules/
 whatsapp-bridge/state/
+# Firebase service credentials must remain outside the repository.
+*firebase-adminsdk*.json
+*service-account*.json
+secrets/

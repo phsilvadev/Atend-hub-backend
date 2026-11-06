@@ -298,3 +298,9 @@ Limites locais do teste: dez tentativas por 15min/tenant e intervalo mínimo de 
 - Importação em staging; publicação transacional apenas após validar todas as páginas e contagens. Chave única empresa + ID ERP. Repetir atualiza sem duplicar; produtos ausentes não são removidos. Sem chamadas de escrita no ERP.
 - Até 100 páginas/10.000 produtos por execução e 4MiB/página. Limite excedido falha preservando catálogo anterior. Sem sincronização automática/worker nesta etapa.
 - Não importa preços, custos, estoque, unidade comercial (ausente no contrato da listagem), composição ou variações individuais. `has_variations` somente sinaliza existência. Nenhum desses dados é inferido.
+
+### Imagem privada do produto
+- `POST /api/v1/products/{id}/image?version=0`: administrador da empresa, sessão válida e Origin permitido. Corpo binário (não multipart), Content-Type `image/jpeg`, `image/png` ou `image/webp`; máximo 5 MiB. A API decodifica e reencoda antes do armazenamento privado no Firebase. Resposta: `{company_id,product_id,has_image:true,image_version,image_updated_at}`. Não retorna caminho de objeto ou URL pública.
+- `GET /api/v1/products/{id}/image`: usuários ativos da mesma empresa, WebP autenticado e sem cache. 404 para produto alheio/sem imagem; 401 sessão inválida; 503 falha de armazenamento.
+- Upload: 409 versão alterada, 413 tamanho/arquivo vazio, 415 tipo não permitido, 422 imagem inválida, 429 limite de tentativas, 503 configuração/Storage indisponível. Falhas não atualizam a imagem anterior.
+- `GET /api/v1/products` inclui `image_upload_enabled` no envelope e `has_image`, `image_version`, `image_updated_at` em cada item. Imagens locais são preservadas na sincronização ERP. Veja `docs/FIREBASE_STORAGE.md` para credenciais/IAM e regras privadas.

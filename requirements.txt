@@ -35,3 +35,5 @@ typing-extensions==4.16.0
 typing-inspection==0.4.4
 uvicorn==0.54.0
 cryptography==50.0.2
+firebase-admin==7.7.0
+Pillow==13.0.0

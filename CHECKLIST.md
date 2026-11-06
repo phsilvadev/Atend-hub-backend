@@ -373,3 +373,13 @@ Validação: testes automatizados da consulta /lojas, seleção persistida, crip
 - [x] Validar consulta real autorizada sem publicar segredos: uma loja acessível e catálogo vazio retornado pela chave.
 
 Validação desta etapa: 108 Pytest na suíte completa e 11 testes específicos de importação (incluindo dois casos adicionais de revogação de acesso e allowlist), 101 Vitest, lint/typecheck/build e 3 E2E aprovados. Os E2E usam API real/SQLite temporário e transporte HTTP do ERP simulado, com prints desktop/mobile. Consulta real autorizada do adapter confirmou uma loja e zero produtos; importação real com catálogo preenchido/paginação ainda não validada. Credenciais não foram persistidas fora do armazenamento criptografado nem adicionadas ao Git. Migração aplicada ao SQLite local. Preços, estoque, unidade, clientes, sincronização incremental e background continuam pendentes. Sem Docker.
+
+### Imagens dos produtos — Firebase Storage
+- [x] Configurar adapter privado Firebase, validar imagens e persistir vínculo por empresa (SDK simulado nos testes).
+- [x] Mostrar status de imagem e modal com arrastar/soltar, prévia e envio.
+- [x] Testar segurança, isolamento, preservação na sincronização e gerar prints.
+- [x] Configurar bucket informado no .env local do backend (ignorado pelo Git).
+- [ ] Configurar identidade/credencial de serviço e validar envio real no Firebase — bloqueio: DefaultCredentialsError, identidade ainda ausente.
+- [ ] Preparar reconciliação operacional de objetos órfãos após falhas entre Storage e banco.
+
+Validação de imagens: suíte backend com 122 testes aprovados e 13 testes específicos de imagens aprovados (incluindo configuração server-side adicionada depois); 105 Vitest, lint/typecheck/build e dois E2E aprovados. Upload, prévia, leitura privada, miniatura após recarregar, CSRF e isolamento verificados via Next/API reais com SDK Storage simulado. Arquivos inválidos/animados/grandes, concorrência, revogação, substituição e preservação na sincronização cobertos no backend. Migration aplicada ao SQLite; prints desktop/mobile gerados com fixture fictícia. FIREBASE_STORAGE_BUCKET configurado localmente; teste real de credenciais retornou DefaultCredentialsError, sem envio ao bucket. Nenhuma chave privada no Git/frontend. Sem Docker.

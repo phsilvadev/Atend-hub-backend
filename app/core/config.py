@@ -17,6 +17,8 @@ class Settings(BaseSettings):
     whatsapp_credential_key: SecretStr = SecretStr('')
     whatsapp_graph_version: str = Field(default='v25.0',pattern=r'^v[0-9]{1,3}\.0$')
     whatsapp_public_webhook_url: str = ''
+    google_application_credentials: str = ''
+    firebase_storage_bucket: str = Field(default="", pattern=r"^[a-z0-9][a-z0-9._-]{1,220}[a-z0-9]$|^$")
     cookie_secure: bool = False
     session_hours: int = Field(default=12, ge=1, le=168)
     remember_days: int = Field(default=7, ge=1, le=30)

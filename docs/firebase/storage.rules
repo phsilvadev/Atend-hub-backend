@@ -1,0 +1,10 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Application sessions are verified by FastAPI. Server service account uses IAM.
+    // Never enable anonymous/public access for product images.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.api.dependencies import Context, admin_context, active_tenant
 from app.api.gestaoclick import Version, decrypt, authorize_fresh
 from app.core.database import get_db
+from app.core.config import get_settings
 from app.core.security import now, throttle
 from app.models.auth import Company
 from app.models.gestaoclick import GestaoClickConnection
@@ -147,5 +148,5 @@ def list_products(q: str = Query('', max_length=120), page: int = Query(1, ge=1)
         conditions.append(or_(Product.name.ilike(f'%{escaped}%', escape='\\'), Product.code.ilike(f'%{escaped}%', escape='\\')))
     total = db.scalar(select(func.count()).select_from(Product).where(*conditions))
     rows = db.scalars(select(Product).where(*conditions).order_by(Product.name, Product.id).offset((page - 1) * 20).limit(20))
-    return {'company_id': context.company.id, 'total': total, 'page': page, 'page_size': 20, 'items': [
-        {key: getattr(row, key) for key in ['id', 'erp_id', 'code', 'name', 'description', 'category', 'active', 'has_variations', 'synced_at']} for row in rows]}
+    return {'company_id': context.company.id, 'total': total, 'page': page, 'page_size': 20, 'image_upload_enabled': bool(get_settings().firebase_storage_bucket), 'items': [
+        {**{key: getattr(row, key) for key in ['id', 'erp_id', 'code', 'name', 'description', 'category', 'active', 'has_variations', 'synced_at', 'image_version', 'image_updated_at']}, 'has_image': bool(row.image_object)} for row in rows]}
