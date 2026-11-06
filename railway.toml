@@ -2,7 +2,7 @@
 builder = "RAILPACK"
 
 [deploy]
-preDeployCommand = ["alembic upgrade head"]
+preDeployCommand = ["alembic upgrade head", "python -m app.cli.platform_bootstrap"]
 startCommand = "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8080} --no-proxy-headers"
 healthcheckPath = "/health/ready"
 healthcheckTimeout = 120

@@ -422,3 +422,7 @@ Correção de diagnóstico após esclarecimento do usuário: projeto compartilha
 
 Publicação efetiva em 06/nov/2026 via CLI autenticado cashewdevops@gmail.com: API fb2f22db-806d-42b0-825b-0648a27617d3, cliente 19f40c1c-30af-40b4-8f61-b7093cd9247d, superadmin a9866479-58a1-40ea-a2bc-443a307220dd, todos SUCCESS. PostgreSQL também SUCCESS. HTTP 200 em login/cadastro e configurações públicas; readiness confirmou banco e head de migrations; login sem token/origem não autorizada 403, sem cookie. Firebase acessível usando variáveis reais de produção em processo local; não alegar execução SSH (nenhuma chave SSH foi adicionada). Prints de produção desktop/mobile sem overflow, widget real pede confirmação humana. Nenhuma conta comercial fictícia criada em produção. Autodeploy GitHub ainda não configurado; próximos uploads via CLI.
 - [ ] Migrar railway.toml para IaC antes de 01/dez/2026 conforme aviso do CLI; formato atual segue operacional até essa data.
+
+### Primeiro acesso de superadministrador
+- [ ] 🔄 Criar pedro6489@gmail.com com senha aleatória, sem alterar conta preexistente.
+- [ ] 🔄 Validar provisionamento no PostgreSQL de produção, remover variáveis temporárias e entregar arquivo privado.

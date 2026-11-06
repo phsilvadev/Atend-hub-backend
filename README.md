@@ -215,3 +215,6 @@ Railpack usa Python 3.12, PostgreSQL por referência de serviço, migrações em
 - Prontidão da API: https://api-production-5aaf.up.railway.app/health/ready
 
 Deploys SUCCESS por upload direto do CLI; instruções de atualização em docs/RAILWAY.md. PostgreSQL/migrations e Turnstile real configurados. Login exige confirmação humana; nenhum usuário comercial de demonstração foi criado. Primeiro superadministrador aguarda configuração inicial. Autodeploy GitHub permanece separado do deploy direto.
+
+### Primeiro administrador em ambiente hospedado
+Além do comando interativo `python -m app.cli.platform_admin`, o pre-deploy pode executar `python -m app.cli.platform_bootstrap` usando as variáveis privadas `PLATFORM_ADMIN_BOOTSTRAP_EMAIL` e `PLATFORM_ADMIN_BOOTSTRAP_PASSWORD`. Sem ambas, o provisionamento é ignorado; configuração parcial falha de forma segura. Se o e-mail já existir, senha/status/cadastro permanecem intactos. Não existe endpoint público ou formulário para esse cadastro. Após criar, esvazie as duas variáveis privadas e renove o deployment para remover esses valores do ambiente ativo. A senha nunca deve ir para argumentos do shell, logs ou Git.
