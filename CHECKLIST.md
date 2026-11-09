@@ -455,3 +455,5 @@ Publicação da API em 09/11/2026: commit 7a3f493 enviado a origin/development e
 
 ### Base de conhecimento no superadmin — 09/11/2026
 - [x] Conectar biblioteca, filtros/paginação, importação JSON autorizada, revisão/versionamento, publicação e desativação ao frontend superadmin. 168 Pytest aprovados (11 da biblioteca), build/TypeScript/lint, 20 Vitest e E2E do superadmin com API/SQLite reais. Sem conteúdo de teste inserido em produção. TXT/PDF, biblioteca privada, embeddings e IA continuam pendentes.
+
+Publicação da biblioteca em 09/11/2026: backend a888d3d e superadmin 3038bb6 enviados a origin/development. Railway API 5d179377-5388-4089-a744-def48bc8441f e superadmin 41c70529-adb5-4fa7-9aaf-83b774eae8fd em SUCCESS. OpenAPI real confirma os filtros novos. Testes de mutação realizados somente em banco temporário.
