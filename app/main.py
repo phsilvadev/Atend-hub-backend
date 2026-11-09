@@ -6,6 +6,7 @@ from fastapi.exceptions import RequestValidationError
 from app.api.gestaoclick import router as gestaoclick_router
 from app.api.products import router as products_router
 from app.api.product_images import router as product_images_router
+from app.api.client_auth import router as client_auth_router
 from app.api.routes import router
 from app.api.whatsapp_official import router as official_router
 from app.api.whatsapp_qr import router as qr_router, QR_WEBHOOK_PATH
@@ -18,6 +19,7 @@ from app.core.database import get_db
 
 app = FastAPI(title='AtendeHub Auth API', version='0.1.0')
 app.include_router(router)
+app.include_router(client_auth_router)
 app.include_router(gestaoclick_router)
 app.include_router(products_router)
 app.include_router(product_images_router)

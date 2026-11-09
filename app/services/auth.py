@@ -1,5 +1,6 @@
 from fastapi import HTTPException
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import update
 from app.core.security import now, new_token, digest, passwords, verify_password, DUMMY_HASH
 from app.models.auth import Company, User, Session, AuditEvent
 from app.repositories.users import by_email
@@ -37,6 +38,13 @@ def login(db, data, settings):
     valid = verify_password(data.password, user.password_hash if user else DUMMY_HASH)
     company = db.get(Company, user.company_id) if user else None
     if not valid or not user or not user.active or not company or not company.active:
+        raise HTTPException(401, 'E-mail ou senha inválidos.')
+    # Serialize against password reset: an old in-flight verification cannot issue
+    # a fresh session after the password has changed and sessions were revoked.
+    checked = db.execute(update(User).where(User.id == user.id, User.active.is_(True),
+        User.password_hash == user.password_hash).values(name=User.name))
+    if checked.rowcount != 1:
+        db.rollback()
         raise HTTPException(401, 'E-mail ou senha inválidos.')
     token, lifetime = issue_session(db, user, data.remember, settings)
     audit(db, user, 'auth.login')

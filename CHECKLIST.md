@@ -10,7 +10,7 @@ Este arquivo acompanha a plataforma completa; uma tela demonstrativa não compro
 - Frontend Next.js/TypeScript e API FastAPI em repositórios separados, ambos na branch development.
 - SQLite em desenvolvimento/testes. PostgreSQL e pgvector permanecem pendentes para produção.
 - Não executar Docker por instrução do usuário. Infraestrutura Docker fica adiada, sem marcar como pronta.
-- Recuperação de senha foi explicitamente deixada para o final.
+- Recuperação de senha foi repriorizada por autorização expressa em 09/11/2026; implementação/testes entregues, SMTP real ainda pendente.
 - Prioridade atual: fundação, equipe, configurações de empresa e planos. Próximas fases comerciais continuam no planejamento; não implementar todas de uma vez.
 - Catálogo de planos fictício autorizado somente em desenvolvimento/testes, inserido por seed no banco e consumido por API. Cobrança real não foi autorizada/implementada nesta etapa.
 
@@ -58,7 +58,7 @@ Este arquivo acompanha a plataforma completa; uma tela demonstrativa não compro
 - [x] Criar frontend Next.js próprio do superadministrador com login, shell, proteção de rotas e listagem real de empresas.
 - [ ] Integrar indicadores do Dashboard, gestão de conhecimento/importações e demais módulos do frontend superadmin.
 - [ ] Implementar múltiplos vínculos de empresa por usuário e seleção de empresa, se adotado.
-- [ ] Recuperação segura de senha com token temporário, envio de e-mail e revogação — deixada para o final.
+- [x] Implementar recuperação segura com token temporário, transporte SMTP e revogação; validar entrega com SMTP real permanece pendente.
 - [ ] Convites por e-mail e verificação de endereço de e-mail.
 
 ## FASE 02 — CENTRAL DE ATENDIMENTOS
@@ -439,3 +439,13 @@ Railway: gateway 585be7f2-5785-42ab-98e4-2ebc536029d2 e API bcfec00f-d1f0-4441-a
 Validação local do Cadastro Incorporado: suíte backend com 152 testes aprovados, mais teste adicional de conclusão concorrente aprovado no grupo de 9 testes do módulo (uma única troca e resposta 409 para duplicata); 115 Vitest e build/TypeScript aprovados. E2E Next/BFF/FastAPI/SQLite com SDK e HTTP Meta simulados valida conexão criptografada, estado de ativação separado e recusa de replay. Conta real e requisitos do aplicativo Meta permanecem pendentes; não houve push nem deploy.
 
 Publicação Meta/ajuda autorizada em 06/11/2026: código backend ceb83dc e frontend d138042 em origin/development. API cc810a36-086a-4c3d-ac42-80c652d8fbb5 e cliente f94d2b51-c634-4f38-9f42-9efe6c5c3a15 em SUCCESS. Readiness 200 confirma PostgreSQL e head de migrations; endpoint Meta sem sessão 401, ajuda anônima redireciona. Pre-deploy registrou INITIAL_PLATFORM_ADMIN_NOT_REQUESTED. App ID, App Secret e Config ID Meta ausentes nas variáveis reais (checados por presença, sem exibir valores); onboarding real segue bloqueado. Trello atualizado, central de ajuda concluída e Meta/IA de suporte pendentes no escopo correspondente.
+
+### Auth cliente — Google e recuperação de senha
+- [x] Aplicar layout de referência no login/cadastro; implementar Google com nonce/cookie e verificação server-side, recuperação via e-mail e redefinição de uso único; testes e prints.
+- [ ] Ativar Google Client ID e SMTP reais (dependências externas; sem credenciais nesta etapa).
+
+Validação auth cliente: suíte completa com 165 Pytest e grupo final com 13 testes de acesso (incluindo teste SMTP adicional), 115 Vitest e E2E com API/SQLite reais aprovados. Verificação Google testada com assinatura RSA real e claims inválidos; E2E simula somente Google/SMTP. Estado/cookie/nonce, replay, criação atômica de tenant, isolamento, e-mail genérico, reset expirado/concorrente, TLS e revogação de sessões cobertos. Google Client ID e SMTP reais pendentes; publicação autorizada pelo usuário em 09/11/2026.
+
+Validação final para publicação: 33 testes focados de autenticação/acesso aprovados, incluindo impedimento de login em andamento com senha antiga após redefinição. Provedores externos reais continuam pendentes.
+
+Validação final de publicação em 09/11/2026: 167 Pytest aprovados, incluindo proteção de login concorrente contra troca de senha. Google/SMTP reais seguem pendentes; nova autorização do usuário para push e Railway.

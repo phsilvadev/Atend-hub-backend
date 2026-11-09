@@ -320,3 +320,14 @@ Todos os endpoints exigem administrador da empresa autenticada, com trial/plano 
 - `POST /api/v1/integrations/whatsapp-official/embedded/complete`: corpo `{ "state": "<autorização temporária>", "code": "<código temporário do SDK>", "phone_number_id": "12345", "waba_id": "67890" }`. Troca server-side, valida conta e salva token criptografado. Resposta é o diagnóstico público da conexão oficial existente; nunca contém token.
 
 409 para autorização expirada/reutilizada, sessão divergente ou versão obsoleta; 403 para papel/origem inválidos; 422 para autorização recusada; 503 para serviço/configuração indisponível. Uma troca falha consome a autorização: iniciar novo fluxo. Registro do número e inscrição do aplicativo continuam explícitos em `/setup`, sem inferir prontidão a partir do login. Configuração e limites em [WHATSAPP_EMBEDDED_SIGNUP.md](docs/WHATSAPP_EMBEDDED_SIGNUP.md).
+
+## Acesso social e recuperação — cliente
+
+`GET /api/v1/auth/options` retorna `google_enabled` e `password_reset_enabled` (sem segredos). POSTs exigem origem autorizada e limites de frequência.
+
+- `POST /api/v1/auth/google/start`: `{mode: "login" | "register"}` → `{state, nonce, client_id}` e cookie HttpOnly de fluxo de cinco minutos.
+- `POST /api/v1/auth/google/complete`: `{state, credential, company?, remember?, challenge_token?}`. Cadastro exige nome da empresa; Google valida nome/e-mail. Retorna IdentityOutput e cookie de sessão. Campo company_id/role não é aceito. Reuso/fluxo divergente 409, identidade recusada 401, desafio ausente/inválido 403. Sem configuração 503.
+- `POST /api/v1/auth/password/forgot`: `{email, challenge_token?}` → 202 `{message}` genérica. Action Turnstile: client_password_reset. Configuração SMTP indisponível 503 para todos os endereços, sem consulta de conta.
+- `POST /api/v1/auth/password/reset`: `{token, password}` → `{message}`. Senha mínima de oito caracteres; token de uso único, quinze minutos; revoga sessões existentes. Token inválido/expirado/repetido 400. Não retorna senha/token nem autentica automaticamente.
+
+Detalhes, SMTP STARTTLS, vinculação de conta Google e limitações de entrega: [CLIENT_AUTH.md](docs/CLIENT_AUTH.md).

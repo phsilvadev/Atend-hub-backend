@@ -224,3 +224,7 @@ Além do comando interativo `python -m app.cli.platform_admin`, o pre-deploy pod
 O Cadastro Incorporado permite ao administrador autorizar o WhatsApp na janela Meta, sem copiar token. Configure `WHATSAPP_EMBEDDED_CONFIG_ID` além de App ID/App Secret e chave de criptografia já existentes; aplique `alembic upgrade head`. Segredos ficam somente no backend. O app Meta e suas permissões/domínios precisam estar preparados. Sem isso, o botão fica indisponível, com alternativa manual. Integração real ainda requer configuração do aplicativo e validação autorizada. Consulte [o guia](docs/WHATSAPP_EMBEDDED_SIGNUP.md).
 
 Cadastro Incorporado publicado com API cc810a36-086a-4c3d-ac42-80c652d8fbb5 e cliente f94d2b51-c634-4f38-9f42-9efe6c5c3a15 (SUCCESS). Conta Meta real continua pendente: App ID, App Secret e Config ID ainda não configurados em produção.
+
+### Google e recuperação de senha do cliente (local)
+
+Login/cadastro do cliente receberam o novo layout, Google e as rotas `/esqueci-senha` e `/redefinir-senha`. Configure `GOOGLE_AUTH_CLIENT_ID` para Google Identity Services; Configure `AUTH_PUBLIC_ORIGIN` e credenciais SMTP STARTTLS para recuperação. Aplique `alembic upgrade head`. Sem configuração externa, os recursos permanecem indisponíveis com explicação. O superadmin não usa login social. Guia completo: [CLIENT_AUTH.md](docs/CLIENT_AUTH.md).

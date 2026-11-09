@@ -6,6 +6,13 @@ from urllib.parse import urlsplit
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file='.env', extra='ignore')
+    google_auth_client_id: str = ''
+    auth_public_origin: str = ''
+    smtp_host: str = ''
+    smtp_port: int = Field(default=587, ge=1, le=65535)
+    smtp_username: str = ''
+    smtp_password: SecretStr = SecretStr('')
+    smtp_from: str = ''
     app_env: Literal['development', 'test', 'production'] = 'development'
     database_url: str = 'sqlite:///./data/atendehub.db'
     allowed_origins: list[str] = ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001']

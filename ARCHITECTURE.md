@@ -88,3 +88,7 @@ O catálogo é tenant-scoped e alimentado por adapter GET documentado. `product_
 ### Autorização Meta via Cadastro Incorporado
 
 SDK no cliente envia código temporário e IDs para o BFF autenticado. A API controla tentativas de cinco minutos vinculadas à sessão/empresa/usuário/versão; fingerprints de estado/código persistidos, consumo atômico, recusa de replay. Troca de código no host fixo Meta e token AES-GCM usam validação existente, com diagnóstico separado das ações explícitas de registro/inscrição. Não há endpoint público de callback OAuth da aplicação; o código vem do callback do SDK. Configuração e limitações: docs/WHATSAPP_EMBEDDED_SIGNUP.md.
+
+### Identidade Google e recuperação do cliente
+
+Google Identity Services no frontend entrega ID token com nonce; BFF encaminha cookie HttpOnly de fluxo e token para verificação google-auth no servidor. Estado descartável e vínculo por subject em tabelas próprias; sessão operacional e regras de tenant existentes são reutilizadas. Recuperação SMTP usa hash de token/versionamento de senha, link em fragmento, consumo atômico e revogação de todas as sessões. Envio por tarefa em processo, sem fila durável nesta etapa. Detalhes em docs/CLIENT_AUTH.md.

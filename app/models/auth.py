@@ -83,3 +83,26 @@ class ChallengeUse(Base):
     __tablename__ = "challenge_uses"
     token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
     expires_at: Mapped[int] = mapped_column(Integer, index=True)
+
+
+class GoogleIdentity(Base):
+    __tablename__ = 'google_identities'
+    subject: Mapped[str] = mapped_column(String(255), primary_key=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey('users.id'), unique=True)
+
+class GoogleAuthFlow(Base):
+    __tablename__ = 'google_auth_flows'
+    state_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    browser_hash: Mapped[str] = mapped_column(String(64))
+    nonce_hash: Mapped[str] = mapped_column(String(64))
+    mode: Mapped[str] = mapped_column(String(10))
+    expires_at: Mapped[int] = mapped_column(Integer, index=True)
+    consumed: Mapped[bool] = mapped_column(Boolean, default=False)
+
+class PasswordReset(Base):
+    __tablename__ = 'password_resets'
+    token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey('users.id'), index=True)
+    password_version: Mapped[str] = mapped_column(String(64))
+    expires_at: Mapped[int] = mapped_column(Integer, index=True)
+    consumed: Mapped[bool] = mapped_column(Boolean, default=False)
