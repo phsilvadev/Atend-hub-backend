@@ -449,3 +449,5 @@ Validação auth cliente: suíte completa com 165 Pytest e grupo final com 13 te
 Validação final para publicação: 33 testes focados de autenticação/acesso aprovados, incluindo impedimento de login em andamento com senha antiga após redefinição. Provedores externos reais continuam pendentes.
 
 Validação final de publicação em 09/11/2026: 167 Pytest aprovados, incluindo proteção de login concorrente contra troca de senha. Google/SMTP reais seguem pendentes; nova autorização do usuário para push e Railway.
+
+Publicação da API em 09/11/2026: commit 7a3f493 enviado a origin/development e deployment 818ef177-a268-4964-aab4-75e14f658502 em SUCCESS. Readiness PostgreSQL/head de migrations HTTP 200. GET /api/v1/auth/options em produção confirma google_enabled=false e password_reset_enabled=false: código publicado, ativação depende de Client ID e SMTP reais. Nenhum usuário fictício inserido em produção. Painéis publicados e correção visual de largura em republicação por solicitação do usuário.
