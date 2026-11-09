@@ -58,3 +58,8 @@ A autenticação da plataforma usa cookie `atendehub_platform_session`, HttpOnly
 - Menu: Dashboard, Empresas, Planos, Consumo de IA, Base de conhecimento, Importações, Auditoria e Configurações.
 
 Não preencher indicadores com dados fictícios em produção. O Dashboard do cliente continua sendo operacional da própria distribuidora.
+
+## Painel conectado — novembro de 2026
+`/base-conhecimento` reúne Biblioteca, Importações e Revisão. A criação e edição exigem título, tipo, categoria, conteúdo e fonte. Uma edição salva gera outra revisão e mantém a versão publicada anterior. O formulário de publicação exige três confirmações individuais e nota de revisão; a desativação exige confirmação e preserva o histórico. Conflitos 409 mantêm as alterações locais até o administrador decidir descartá-las e recarregar a versão atual.
+
+A importação usa o formato JSON normalizado do backend; o botão Baixar modelo fornece um exemplo sem dados pessoais. Referência de autorização e termos de redação são informados no formulário. Cada tentativa mantém seu request_id para repetição idempotente após falha de rede. TXT, ZIP, PDF e extração por IA não fazem parte desta entrega.

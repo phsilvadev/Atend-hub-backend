@@ -177,3 +177,28 @@ def test_shared_sales_language_without_private_commercial_rules(client,database)
     assert client.post(KB+'/'+stock['id']+'/publish',json=approval(1)).status_code == 422
     standard=client.post(KB,json=document(body='Identificadores como NBR 8800-2008 devem ser conferidos na fonte técnica original.')).json()
     assert client.post(KB+'/'+standard['id']+'/publish',json=approval(1)).status_code == 200
+
+
+def test_platform_library_filters_counts_pagination_and_review_state(client,database):
+    platform_login(client,database)
+    draft=client.post(KB,json=document()).json()
+    published=client.post(KB,json=document(title='Cantoneira de aço',category='Perfis',kind='faq')).json()
+    published=client.post(f"{KB}/{published['id']}/publish",json=approval(1)).json()
+    inactive=client.post(KB,json=document(title='Documento desativado')).json()
+    inactive=client.post(f"{KB}/{inactive['id']}/publish",json=approval(1)).json()
+    client.post(f"{KB}/{inactive['id']}/deactivate",json={'version':inactive['version']})
+    result=client.get(KB,params={'limit':1}).json()
+    assert len(result['items']) == 1 and result['total'] == 3
+    assert result['summary'] == {'total':3,'review':1,'published':1,'inactive':1}
+    assert result['categories'] == ['Perfis','Tubos de aço']
+    assert client.get(KB,params={'offset':3}).json()['items'] == []
+    assert client.get(KB,params={'q':'%'}).json()['total'] == 0
+    assert client.get(KB,params={'q':'Cantoneira','kind':'faq','category':'Perfis','status':'published'}).json()['items'][0]['id'] == published['id']
+    assert client.get(KB,params={'status':'review'}).json()['items'][0]['id'] == draft['id']
+    updated=client.patch(f"{KB}/{published['id']}",json={**document(title='Cantoneira revisada'),'version':published['version']}).json()
+    assert updated['published_revision'] == 1 and updated['current_revision'] == 2
+    result=client.get(KB,params={'status':'review'}).json()
+    assert result['total'] == 2 and result['summary']['published'] == 0
+    assert client.get(KB,params={'status':'not_valid'}).status_code == 422
+    client.cookies.clear()
+    assert client.get(KB,params={'q':'Cantoneira'}).status_code == 401

@@ -331,3 +331,14 @@ Todos os endpoints exigem administrador da empresa autenticada, com trial/plano 
 - `POST /api/v1/auth/password/reset`: `{token, password}` → `{message}`. Senha mínima de oito caracteres; token de uso único, quinze minutos; revoga sessões existentes. Token inválido/expirado/repetido 400. Não retorna senha/token nem autentica automaticamente.
 
 Detalhes, SMTP STARTTLS, vinculação de conta Google e limitações de entrega: [CLIENT_AUTH.md](docs/CLIENT_AUTH.md).
+
+### Filtros da biblioteca comum (superadmin)
+`GET /api/v1/platform/knowledge?q=metalon&status=review&kind=faq&category=Ferro%20e%20a%C3%A7o&offset=0&limit=20`
+
+- `q`: busca textual literal em título, corpo e referência (até 100 caracteres); não faz busca semântica.
+- `status`: `all`, `review`, `published`, `inactive`. A revisar inclui rascunhos nunca publicados e novas revisões de conteúdo ativo. Desativados incluem conteúdos anteriormente publicados e removidos da consulta das empresas.
+- `kind`: `all`, `faq`, `technical_document`, `synonym`, `approved_answer`.
+- `category`: nome exato da categoria atual (até 80 caracteres).
+- `offset` e `limit`: paginação no banco (máximo 50 itens).
+- Resposta preserva `items` e acrescenta `total` filtrado, `categories` da biblioteca e `summary` global com `total`, `review`, `published`, `inactive`. Os números são contagens do banco, sem valores demonstrativos.
+- Uma revisão pendente não substitui a última revisão publicada. A consulta por empresas continua expondo somente a revisão aprovada e ativa.

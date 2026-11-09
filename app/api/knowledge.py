@@ -1,7 +1,8 @@
+from typing import Literal
 from uuid import UUID
 from fastapi import APIRouter, Depends, Request, Response, HTTPException, Query
 from pydantic import ValidationError
-from sqlalchemy import select, func
+from sqlalchemy import select, func, or_, and_
 from app.core.database import get_db
 from app.core.config import get_settings
 from app.core.security import throttle, now
@@ -59,9 +60,33 @@ def get_import(batch_id:UUID,context=Depends(auth.platform_context),db=Depends(g
     return service.import_output(db,batch)
 
 @router.get('/knowledge')
-def entries(offset:int=Query(default=0,ge=0),limit:int=Query(default=20,ge=1,le=50),context=Depends(auth.platform_context),db=Depends(get_db)):
-    rows=db.scalars(select(KnowledgeEntry).order_by(KnowledgeEntry.created_at.desc(),KnowledgeEntry.id).offset(offset).limit(limit)).all()
-    return {'items':[service.entry_output(db,row) for row in rows]}
+def entries(offset:int=Query(default=0,ge=0),limit:int=Query(default=20,ge=1,le=50),
+            q:str=Query(default='',max_length=100),
+            status:Literal['all','review','published','inactive']='all',
+            kind:Literal['all','faq','technical_document','synonym','approved_answer']='all',
+            category:str=Query(default='',max_length=80),
+            context=Depends(auth.platform_context),db=Depends(get_db)):
+    base=select(KnowledgeEntry).join(KnowledgeRevision,
+        (KnowledgeRevision.entry_id == KnowledgeEntry.id)&(KnowledgeRevision.revision == KnowledgeEntry.current_revision))
+    review=or_(KnowledgeEntry.published_revision.is_(None),
+               and_(KnowledgeEntry.active.is_(True),KnowledgeEntry.current_revision != KnowledgeEntry.published_revision))
+    published=and_(KnowledgeEntry.active.is_(True),KnowledgeEntry.current_revision == KnowledgeEntry.published_revision)
+    inactive=and_(KnowledgeEntry.active.is_(False),KnowledgeEntry.published_revision.is_not(None))
+    count=lambda query: db.scalar(select(func.count()).select_from(query.subquery()))
+    summary={'total':count(base),'review':count(base.where(review)),
+             'published':count(base.where(published)),'inactive':count(base.where(inactive))}
+    categories=list(db.scalars(select(KnowledgeRevision.category).join(KnowledgeEntry,
+        (KnowledgeRevision.entry_id == KnowledgeEntry.id)&(KnowledgeRevision.revision == KnowledgeEntry.current_revision))
+        .distinct().order_by(KnowledgeRevision.category)).all())
+    query=base
+    if q.strip(): query=query.where(or_(*[field.icontains(q.strip(),autoescape=True) for field in
+        (KnowledgeRevision.title,KnowledgeRevision.body,KnowledgeRevision.source_reference)]))
+    if status != 'all': query=query.where({'review':review,'published':published,'inactive':inactive}[status])
+    if kind != 'all': query=query.where(KnowledgeRevision.kind == kind)
+    if category: query=query.where(KnowledgeRevision.category == category)
+    total=count(query)
+    rows=db.scalars(query.order_by(KnowledgeEntry.created_at.desc(),KnowledgeEntry.id).offset(offset).limit(limit)).all()
+    return {'items':[service.entry_output(db,row) for row in rows], 'total':total,'summary':summary,'categories':categories}
 
 @router.post('/knowledge',status_code=201)
 def create(data:KnowledgeInput,context=Depends(auth.platform_context),db=Depends(get_db)):

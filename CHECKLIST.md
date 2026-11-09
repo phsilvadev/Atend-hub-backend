@@ -56,7 +56,8 @@ Este arquivo acompanha a plataforma completa; uma tela demonstrativa não compro
 - [x] Criar e executar testes de autenticação, permissões e isolamento com API real e SQLite temporário.
 - [x] Criar identidade/sessão de superadministrador separadas, com provisionamento local por CLI e sem elevação pública de usuários de tenant.
 - [x] Criar frontend Next.js próprio do superadministrador com login, shell, proteção de rotas e listagem real de empresas.
-- [ ] Integrar indicadores do Dashboard, gestão de conhecimento/importações e demais módulos do frontend superadmin.
+- [x] Integrar gestão de conhecimento/importações ao frontend superadmin, com revisão e publicação (validada em 09/11/2026).
+- [ ] Integrar indicadores do Dashboard e demais módulos do frontend superadmin.
 - [ ] Implementar múltiplos vínculos de empresa por usuário e seleção de empresa, se adotado.
 - [x] Implementar recuperação segura com token temporário, transporte SMTP e revogação; validar entrega com SMTP real permanece pendente.
 - [ ] Convites por e-mail e verificação de endereço de e-mail.
@@ -451,3 +452,6 @@ Validação final para publicação: 33 testes focados de autenticação/acesso 
 Validação final de publicação em 09/11/2026: 167 Pytest aprovados, incluindo proteção de login concorrente contra troca de senha. Google/SMTP reais seguem pendentes; nova autorização do usuário para push e Railway.
 
 Publicação da API em 09/11/2026: commit 7a3f493 enviado a origin/development e deployment 818ef177-a268-4964-aab4-75e14f658502 em SUCCESS. Readiness PostgreSQL/head de migrations HTTP 200. GET /api/v1/auth/options em produção confirma google_enabled=false e password_reset_enabled=false: código publicado, ativação depende de Client ID e SMTP reais. Nenhum usuário fictício inserido em produção. Painéis publicados e correção visual de largura em republicação por solicitação do usuário.
+
+### Base de conhecimento no superadmin — 09/11/2026
+- [x] Conectar biblioteca, filtros/paginação, importação JSON autorizada, revisão/versionamento, publicação e desativação ao frontend superadmin. 168 Pytest aprovados (11 da biblioteca), build/TypeScript/lint, 20 Vitest e E2E do superadmin com API/SQLite reais. Sem conteúdo de teste inserido em produção. TXT/PDF, biblioteca privada, embeddings e IA continuam pendentes.
