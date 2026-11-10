@@ -14,6 +14,7 @@ from app.services.platform_settings import decrypt,storage_ready
 from app.services.knowledge import IDENTIFIERS
 from app.services.support_knowledge import DOCUMENTS,VERSION
 from app.schemas.support import SupportAnswer
+from app.services import ai_accounting
 
 RETENTION=30*86400
 LEASE=120
@@ -34,7 +35,7 @@ Se a documentação não responder à dúvida, informe a limitação e use sourc
 Use o histórico somente para compreender a dúvida. Não reproduza identificadores pessoais nem invente fontes ou condições comerciais.'''
 
 class ProviderFailure(Exception):
-    def __init__(self,code='unavailable'):self.code=code
+    def __init__(self,code='unavailable',usage=None):self.code=code;self.usage=usage
 
 
 def redact(text):
@@ -97,11 +98,12 @@ def history(db,context):
 
 def call_provider(key,model,conversation):
     ids=[doc['id'] for doc in DOCUMENTS]
-    payload={'model':model,'store':False,'max_output_tokens':get_settings().support_max_output_tokens,
+    payload={'model':model,'store':False,'service_tier':'default','max_output_tokens':get_settings().support_max_output_tokens,
              'instructions':INSTRUCTIONS+'\nDOCUMENTOS APROVADOS '+VERSION+':\n'+json.dumps(DOCUMENTS,ensure_ascii=False),
              'input':conversation,
              'text':{'format':{'type':'json_schema','name':'support_answer','strict':True,'schema':{
                  'type':'object','properties':{'answer':{'type':'string'},'source_ids':{'type':'array','items':{'type':'string','enum':ids}}},'required':['answer','source_ids'],'additionalProperties':False}}}}
+    measured={}
     try:
         with httpx.Client(timeout=httpx.Timeout(20,connect=5),follow_redirects=False) as client:
             response=client.post('https://api.openai.com/v1/responses',headers={'Authorization':'Bearer '+key},json=payload)
@@ -109,6 +111,15 @@ def call_provider(key,model,conversation):
         if response.status_code==429:raise ProviderFailure('provider_limit')
         if response.status_code!=200:raise ProviderFailure()
         data=response.json()
+        if isinstance(data,dict):
+            usage=data.get('usage') or {}
+            measured={field:usage.get(field) if type(usage.get(field)) is int and usage[field]>=0 else None for field in ['input_tokens','output_tokens']}
+            details=usage.get('input_tokens_details') or {}
+            cached=details.get('cached_tokens')
+            measured['cached_tokens']=cached if type(cached) is int and cached>=0 and measured['input_tokens'] is not None and cached<=measured['input_tokens'] else None
+            tier=data.get('service_tier','default')
+            measured['service_tier']=tier if isinstance(tier,str) and len(tier)<=30 else 'unknown'
+            measured['resolved_model']=data.get('model')
         if not isinstance(data,dict) or data.get('status')!='completed':raise ProviderFailure()
         texts=[part['text'] for item in data.get('output',[]) if item.get('type')=='message' and item.get('role')=='assistant' for part in item.get('content',[]) if part.get('type')=='output_text' and isinstance(part.get('text'),str)]
         if not texts or sum(map(len,texts))>12000:raise ProviderFailure()
@@ -116,11 +127,11 @@ def call_provider(key,model,conversation):
         if any(source not in ids for source in answer.source_ids):raise ProviderFailure()
         sources=[{'id':doc['id'],'title':doc['title'],'version':VERSION} for doc in DOCUMENTS if doc['id'] in answer.source_ids]
         text=redact(answer.answer) if sources else 'Não encontrei uma orientação aprovada para essa dúvida. Consulte a Central de ajuda ou o administrador da sua empresa para conferir o procedimento.'
-        usage=data.get('usage') or {}
-        tokens={field:usage.get(field) if type(usage.get(field)) is int and usage[field]>=0 else None for field in ['input_tokens','output_tokens']}
-        return text,sources,tokens
-    except ProviderFailure:raise
-    except (httpx.HTTPError,ValueError,TypeError,KeyError,AttributeError):raise ProviderFailure() from None
+        return text,sources,measured
+    except ProviderFailure as error:
+        if measured:error.usage=measured
+        raise
+    except (httpx.HTTPError,ValueError,TypeError,KeyError,AttributeError):raise ProviderFailure(usage=measured) from None
 
 
 def send(db,context,data):
@@ -148,6 +159,7 @@ def send(db,context,data):
         for scope,limit in [('platform',settings.support_daily_platform_limit),('company:'+context.company.id,settings.support_daily_company_limit),('user:'+context.company.id+':'+context.user.id,settings.support_daily_user_limit)]:consume(db,scope,day,limit)
         turn=SupportTurn(id=turn_id,company_id=context.company.id,user_id=context.user.id,request_id=str(data.request_id),sequence=sequence,question=question,status='processing',model=config.model,config_version=config.version,sources=[],created_at=timestamp)
         db.add(turn)
+        ai_accounting.start(db,turn)
         previous=list(db.scalars(select(SupportTurn).where(*scoped(context),SupportTurn.status=='complete').order_by(SupportTurn.sequence.desc()).limit(4)).all())
         conversation=[]
         for row in reversed(previous):conversation.extend([{'role':'user','content':row.question[:600]},{'role':'assistant','content':row.answer[:1200]}])
@@ -163,7 +175,9 @@ def send(db,context,data):
         db.rollback();raise
     failure=None;answer=None;sources=[];tokens={'input_tokens':None,'output_tokens':None}
     try:answer,sources,tokens=call_provider(key,model,conversation)
-    except ProviderFailure as error:failure=error.code
+    except ProviderFailure as error:
+        failure=error.code
+        if error.usage:tokens=error.usage
     db.expire_all()
     db.refresh(context.user);db.refresh(context.company);db.refresh(context.session)
     revoked=not context.user.active or not context.company.active or context.user.company_id!=context.company.id or context.session.revoked or context.session.expires_at<=now() or (context.company.plan=='trial' and context.company.trial_ends_at<=now())
@@ -173,9 +187,11 @@ def send(db,context,data):
     released=db.execute(update(SupportThread).where(SupportThread.company_id==context.company.id,SupportThread.user_id==context.user.id,SupportThread.pending_id==turn_id).values(pending_id=None))
     if released.rowcount!=1:failure='interrupted'
     turn=db.get(SupportTurn,turn_id)
-    if not turn:db.rollback();raise HTTPException(409,'Histórico alterado. Atualize o chat.')
+    if not turn:
+        ai_accounting.finish(db,turn_id,'failed',tokens);db.commit();raise HTTPException(409,'Histórico alterado. Atualize o chat.')
     turn.status='failed' if failure else 'complete';turn.error_code=failure;turn.answer=None if failure else answer;turn.sources=[] if failure else sources
     turn.input_tokens=tokens['input_tokens'];turn.output_tokens=tokens['output_tokens']
+    ai_accounting.finish(db,turn_id,turn.status,tokens)
     db.add(AuditEvent(company_id=context.company.id,actor_id=context.user.id,action='support.'+turn.status,created_at=now()))
     db.commit()
     if revoked:raise HTTPException(401,'Sessão inválida ou expirada.')

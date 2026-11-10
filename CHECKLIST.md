@@ -470,3 +470,6 @@ Publicação em 10/11/2026: push development concluído nos três repositórios 
 
 
 Suporte publicado em 10/11/2026: backend c40b51e e cliente4920349 em origin/development. Railway API cc895818-95ee-45f3-9b8d-eec5b96fe78c e cliente 2f583e23-4891-4cb6-88cc-97ac31f568bb em SUCCESS. Readiness e login200; suporte sem sessão401. Testes193 Pytest/119 Vitest/3 E2E com fronteira OpenAI simulada. Geração real pelo widget fica em validação com conta autorizada, sem inserção de registros fictícios em produção. Trello movido para Validação.
+
+### Consumo de IA no superadmin
+- [x] Livro durável sem prompts, cache/entrada/saída, tarifa versionada, cálculo Decimal e backfill do suporte; filtros e tela dinâmica com pendências de custo. 201 Pytest na suíte completa e 8 testes de consumo revalidados após otimização de aplicação de tarifas; 27 Vitest, build/TypeScript/lint e E2E API/SQLite real aprovados. Dados de teste apenas em ambiente temporário. USD estimado, sem fatura/câmbio ou uso externo.
