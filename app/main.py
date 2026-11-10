@@ -17,8 +17,11 @@ from app.api.knowledge import router as platform_router, public_router as knowle
 from app.core.config import get_settings
 from app.core.database import get_db
 
+from app.api.platform_settings import router as platform_settings_router
+
 app = FastAPI(title='AtendeHub Auth API', version='0.1.0')
 app.include_router(router)
+app.include_router(platform_settings_router)
 app.include_router(client_auth_router)
 app.include_router(gestaoclick_router)
 app.include_router(products_router)

@@ -6,6 +6,7 @@ from urllib.parse import urlsplit
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file='.env', extra='ignore')
+    platform_credential_key: SecretStr = SecretStr('')
     google_auth_client_id: str = ''
     auth_public_origin: str = ''
     smtp_host: str = ''

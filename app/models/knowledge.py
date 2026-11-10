@@ -10,6 +10,7 @@ class PlatformAdmin(Base):
     email: Mapped[str] = mapped_column(String(254), unique=True)
     password_hash: Mapped[str] = mapped_column(String(512))
     active: Mapped[bool] = mapped_column(Boolean, default=True)
+    version: Mapped[int] = mapped_column(Integer, default=1)
 
 class PlatformSession(Base):
     __tablename__ = 'platform_sessions'
@@ -68,3 +69,18 @@ class KnowledgeApproval(Base):
     admin_id: Mapped[str] = mapped_column(ForeignKey('platform_admins.id'))
     review_note: Mapped[str] = mapped_column(String(1000))
     created_at: Mapped[int] = mapped_column(Integer)
+
+class PlatformControl(Base):
+    __tablename__ = 'platform_control'
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    primary_admin_id: Mapped[str | None] = mapped_column(ForeignKey('platform_admins.id'), nullable=True)
+    version: Mapped[int] = mapped_column(Integer, default=1)
+
+class PlatformOpenAI(Base):
+    __tablename__ = 'platform_openai'
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    key_ciphertext: Mapped[str | None] = mapped_column(Text, nullable=True)
+    model: Mapped[str] = mapped_column(String(120), default='gpt-4.1-mini')
+    version: Mapped[int] = mapped_column(Integer, default=1)
+    checked_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    check_status: Mapped[str | None] = mapped_column(String(30), nullable=True)

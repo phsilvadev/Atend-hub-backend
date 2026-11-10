@@ -342,3 +342,18 @@ Detalhes, SMTP STARTTLS, vinculação de conta Google e limitações de entrega:
 - `offset` e `limit`: paginação no banco (máximo 50 itens).
 - Resposta preserva `items` e acrescenta `total` filtrado, `categories` da biblioteca e `summary` global com `total`, `review`, `published`, `inactive`. Os números são contagens do banco, sem valores demonstrativos.
 - Uma revisão pendente não substitui a última revisão publicada. A consulta por empresas continua expondo somente a revisão aprovada e ativa.
+
+## Configurações de plataforma e administradores
+Todos exigem cookie de plataforma válido. Mutações exigem origem autorizada, JSON e `current_password` (senha do ator), limitada a 30 confirmações/15 minutos.
+
+| Método | Endpoint | Contrato |
+|---|---|---|
+| GET | `/api/v1/platform/administrators?q=&offset=0&limit=20` | `items`, `total`; cada item contém id, nome, e-mail, active, version, is_primary, is_self, can_edit, can_deactivate. Sem hash/senha. Máximo 50 itens. |
+| POST | `/api/v1/platform/administrators` | `name` (2–120), `email`, `password` (12–128), `current_password`. Cria conta secundária ativa; 201. |
+| PATCH | `/api/v1/platform/administrators/{id}` | `name`, `email`, `active`, `version`, `current_password`, `password` opcional. Versão obsoleta: 409. Outra conta tentando editar a primária: 403. Senha/e-mail novos ou desativação revogam sessões. Resposta inclui `requires_login` na alteração da própria conta. |
+| GET | `/api/v1/platform/settings/openai` | `model`, `version`, `configured`, `storage_ready`, `checked_at`, `check_status`, `can_manage`, `diagnostic_only=true`. Nunca retorna a chave. |
+| PATCH | `/api/v1/platform/settings/openai` | `version`, `model`, `current_password`, `api_key` opcional (obrigatória se ainda não existe). Sem api_key preserva a chave existente. Invalida teste anterior. |
+| POST | `/api/v1/platform/settings/openai/test` | `version`, `current_password`. Consulta oficial de acesso ao modelo; até 10 testes/15 minutos por plataforma. Estados: verified, invalid_key, forbidden, model_unavailable, rate_limited, unavailable. Falhas do provedor são reportadas por estado sanitizado, sem corpo original. |
+| POST | `/api/v1/platform/settings/openai/remove` | `version`, `current_password`; remove ciphertext e limpa diagnóstico. Não revoga a chave no provedor. |
+
+Qualquer superadmin ativo gerencia OpenAI; a proteção primária aplica-se somente à identidade do primeiro administrador. A API não permite redefinir essa identidade por JSON, desativar a própria conta ou excluir administradores. Campos extras são recusados. Mutação concorrente pode retornar 409 e exige recarga. Alteração de configuração durante um diagnóstico impede gravar o resultado antigo.

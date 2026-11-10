@@ -235,3 +235,31 @@ API de acesso publicada no Railway (818ef177-a268-4964-aab4-75e14f658502, SUCCES
 A tela `/base-conhecimento` do frontend superadmin integra a biblioteca comum, criação/edição de textos, importação JSON autorizada, revisão, versões imutáveis, publicação e desativação. `/importacoes` abre diretamente a aba de importação da mesma tela. Busca/filtros/paginação e contagens vêm do banco. O BFF do Next encaminha somente rotas/métodos permitidos, com cookie de plataforma e checagem de origem nas mutações.
 
 Arquivos aceitos: JSON normalizado (`messages` com `role: customer|agent` e `text`), até 512 KiB, 2–200 mensagens, texto até 3.000 caracteres por mensagem. A interface permite informar a referência de autorização e termos para remoção. Não armazena o arquivo em localStorage nem publica automaticamente. Após a remoção assistida, a revisão humana confirma privacidade, direitos de uso e isolamento comercial. TXT/ZIP do WhatsApp, PDF/catálogos, biblioteca privada e recuperação semântica/uso pela IA permanecem pendentes.
+
+## Configurações do superadmin — OpenAI e administradores
+A página `/configuracoes` no frontend superadmin tem duas abas conectadas à API de plataforma. Não utiliza sessões de distribuidoras.
+
+**OpenAI:** qualquer superadministrador ativo pode cadastrar/substituir/remover a chave, selecionar o identificador do modelo e testar o acesso, confirmando sua própria senha. A chave é write-only: a API devolve apenas o estado de configuração e nunca o valor ou ciphertext. AES-256-GCM usa `PLATFORM_CREDENTIAL_KEY` (32 bytes aleatórios em Base64 no ambiente do backend), com contexto próprio; sem chave mestra válida o armazenamento é bloqueado. Preserve essa chave em backup protegido; trocá-la sem recriptografar os dados impede a leitura das credenciais existentes.
+
+Para desenvolvimento, crie a chave mestra diretamente no `.env` ignorado pelo Git, sem exibi-la:
+```bash
+.venv/bin/python - <<'PY'
+import base64, secrets
+from pathlib import Path
+from dotenv import dotenv_values, set_key
+p = Path('.env')
+if not dotenv_values(p).get('PLATFORM_CREDENTIAL_KEY'):
+    set_key(p, 'PLATFORM_CREDENTIAL_KEY', base64.urlsafe_b64encode(secrets.token_bytes(32)).decode())
+p.chmod(0o600)
+PY
+.venv/bin/alembic upgrade head
+```
+Em produção, configure a chave mestra no gerenciador de variáveis protegidas do servidor. A chave **OpenAI** é cadastrada no formulário autenticado; não a coloque em NEXT_PUBLIC, logs, Git ou cartões do Trello.
+
+O diagnóstico usa somente `GET https://api.openai.com/v1/models/{model}` (documentação oficial: https://developers.openai.com/api/reference/resources/models/methods/retrieve). Não gera respostas, não valida saldo/faturamento ou geração e não envia dados de clientes. Apresenta erros sanitizados e permite no máximo 10 diagnósticos da plataforma por janela de 15 minutos. Ainda não há motor vendedor ou chat de suporte conectado à OpenAI; limites de consumo de geração serão implementados com esses serviços, não são simulados por este formulário.
+
+**Administradores:** criação, busca paginada, edição, troca de senha e ativação/desativação. Toda mutação exige confirmação da senha do ator (30 tentativas por conta/15 minutos). A identidade do primeiro superadmin é armazenada em `platform_control.primary_admin_id` e não é editável pela API. Outros administradores não podem alterar nenhum dado, senha ou estado dessa conta. O primeiro pode editar a própria conta e trocar a própria senha; não pode desativar-se. Autodesativação de qualquer admin é bloqueada; exclusão de administradores não é disponibilizada. Mudança de senha/e-mail e desativação revogam sessões da conta afetada. Ações são auditadas sem senhas ou chaves.
+
+A migration preserva a conta única existente; havendo várias, utiliza a primeira criação auditada. Identidade ambígua interrompe a migration, sem escolher silenciosamente outra conta. Em instalação nova, o primeiro provisionamento pelo comando protegido existente estabelece a identidade primária. Não há criação pública nem elevação de contas de empresas.
+
+Validação: contratos OpenAI com transporte HTTP simulado, controle de acesso, raiz protegida, concorrência, migração e fluxo de navegador com API/SQLite temporários. Uma chave real OpenAI e diagnóstico na conta real continuam necessários para validação externa; nenhum teste fictício é gravado em produção.

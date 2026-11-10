@@ -92,3 +92,8 @@ SDK no cliente envia código temporário e IDs para o BFF autenticado. A API con
 ### Identidade Google e recuperação do cliente
 
 Google Identity Services no frontend entrega ID token com nonce; BFF encaminha cookie HttpOnly de fluxo e token para verificação google-auth no servidor. Estado descartável e vínculo por subject em tabelas próprias; sessão operacional e regras de tenant existentes são reutilizadas. Recuperação SMTP usa hash de token/versionamento de senha, link em fragmento, consumo atômico e revogação de todas as sessões. Envio por tarefa em processo, sem fila durável nesta etapa. Detalhes em docs/CLIENT_AUTH.md.
+
+### Identidade primária e configurações OpenAI
+`platform_control` fixa o primeiro administrador e coordena mutações administrativas por atualização condicional de versão. A escolha é feita no provisionamento inicial ou na migração da identidade existente; não vem do frontend. Confirmação de senha e sessão ativa são verificadas sob a coordenação; a versão individual evita sobrescrita de edições concorrentes. Login usa comparação condicional do hash vigente antes de criar sessão, evitando sessão nova após validação de senha já rotacionada.
+
+`platform_openai` contém configuração versionada, ciphertext AES-256-GCM com AAD próprio e diagnóstico sem segredos. Chave mestra em variável protegida separada da chave OpenAI. O adaptador acessa apenas host oficial fixo, sem redirects ou URL configurável, com timeout e classificação de falhas. Não implementa geração nem usa a biblioteca de conhecimento automaticamente. O diagnóstico libera o bloqueio antes da chamada externa e revalida ator/sessão/versão ao persistir o resultado.

@@ -1,9 +1,9 @@
 from dataclasses import dataclass
 from fastapi import Depends, HTTPException, Request
-from sqlalchemy import select
+from sqlalchemy import select, update
 from app.core.database import get_db
 from app.core.security import now, passwords, verify_password, DUMMY_HASH, new_token, digest
-from app.models.knowledge import PlatformAdmin, PlatformSession, PlatformAudit
+from app.models.knowledge import PlatformAdmin, PlatformSession, PlatformAudit, PlatformControl
 
 PLATFORM_COOKIE='atendehub_platform_session'
 LIFETIME=3600
@@ -32,7 +32,9 @@ def bootstrap(db,name,email,password):
     if db.scalar(select(PlatformAdmin).where(PlatformAdmin.email == email)):
         raise ValueError('Administrador já cadastrado; nenhuma senha foi alterada.')
     admin=PlatformAdmin(name=name.strip(),email=email,password_hash=passwords.hash(password))
-    db.add(admin);db.flush();audit(db,admin,'platform.admin.created');db.commit()
+    db.add(admin);db.flush()
+    db.execute(update(PlatformControl).where(PlatformControl.id==1,PlatformControl.primary_admin_id.is_(None)).values(primary_admin_id=admin.id,version=PlatformControl.version+1))
+    audit(db,admin,'platform.admin.created');db.commit()
     return admin
 
 def login(db,data):
@@ -40,6 +42,9 @@ def login(db,data):
     valid=verify_password(data.password,admin.password_hash if admin else DUMMY_HASH)
     if not valid or not admin or not admin.active:
         raise HTTPException(401,'E-mail ou senha inválidos.')
+    result=db.execute(update(PlatformAdmin).where(PlatformAdmin.id==admin.id,PlatformAdmin.active.is_(True),PlatformAdmin.password_hash==admin.password_hash).values(password_hash=admin.password_hash))
+    if result.rowcount!=1:
+        db.rollback();raise HTTPException(401,'E-mail ou senha inválidos.')
     token=new_token()
     db.add(PlatformSession(token_hash=digest(token),admin_id=admin.id,expires_at=now()+LIFETIME))
     audit(db,admin,'platform.login');db.commit()
