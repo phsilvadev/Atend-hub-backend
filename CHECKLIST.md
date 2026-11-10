@@ -467,3 +467,6 @@ Publicação em 10/11/2026: push development concluído nos três repositórios 
 
 ### Suporte da plataforma com OpenAI — 10/11/2026
 - [x] Backend de suporte autenticado, histórico por usuário/empresa, documentação de ajuda versionada, quotas atômicas, idempotência/lease, tokens informados pelo provedor e falhas sanitizadas; widget integrado. 193 Pytest, 119 Vitest, build/TypeScript/lint e 3 E2E API/SQLite reais aprovados (só fronteira OpenAI simulada). Corrigido timestamp relativo na coleta do teste Turnstile, sem alteração da proteção de produção. Prints desktop/mobile gerados. Validação externa de geração e agendamento de limpeza sem acessos permanecem pendentes.
+
+
+Suporte publicado em 10/11/2026: backend c40b51e e cliente4920349 em origin/development. Railway API cc895818-95ee-45f3-9b8d-eec5b96fe78c e cliente 2f583e23-4891-4cb6-88cc-97ac31f568bb em SUCCESS. Readiness e login200; suporte sem sessão401. Testes193 Pytest/119 Vitest/3 E2E com fronteira OpenAI simulada. Geração real pelo widget fica em validação com conta autorizada, sem inserção de registros fictícios em produção. Trello movido para Validação.
