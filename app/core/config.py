@@ -6,6 +6,10 @@ from urllib.parse import urlsplit
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file='.env', extra='ignore')
+    support_daily_user_limit: int = Field(default=30,ge=1,le=1000)
+    support_daily_company_limit: int = Field(default=200,ge=1,le=10000)
+    support_daily_platform_limit: int = Field(default=1000,ge=1,le=100000)
+    support_max_output_tokens: int = Field(default=600,ge=128,le=1200)
     platform_credential_key: SecretStr = SecretStr('')
     google_auth_client_id: str = ''
     auth_public_origin: str = ''

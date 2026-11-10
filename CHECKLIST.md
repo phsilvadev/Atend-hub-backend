@@ -464,3 +464,6 @@ Publicação da biblioteca em 09/11/2026: backend a888d3d e superadmin 3038bb6 e
 
 
 Publicação em 10/11/2026: push development concluído nos três repositórios (API 6c609a1, cliente 3af6530, superadmin 9b49a06). Railway API 44c36254-c40c-44dc-8602-3da17b50484b, cliente c7ca8ff9-1a45-486a-9fc9-2643cf3a7635 e superadmin 5cf06c23-ce22-4086-a848-3d816a7e820f em SUCCESS. Readiness API e logins dos frontends HTTP200; configuração sem sessão401. Chave mestra de armazenamento configurada no ambiente protegido do backend, sem expor valor. Chave OpenAI real e validação externa pendentes de cadastro pelo formulário. Incluídos histórico lateral de importações e indicadores da central no Dashboard.
+
+### Suporte da plataforma com OpenAI — 10/11/2026
+- [x] Backend de suporte autenticado, histórico por usuário/empresa, documentação de ajuda versionada, quotas atômicas, idempotência/lease, tokens informados pelo provedor e falhas sanitizadas; widget integrado. 193 Pytest, 119 Vitest, build/TypeScript/lint e 3 E2E API/SQLite reais aprovados (só fronteira OpenAI simulada). Corrigido timestamp relativo na coleta do teste Turnstile, sem alteração da proteção de produção. Prints desktop/mobile gerados. Validação externa de geração e agendamento de limpeza sem acessos permanecem pendentes.

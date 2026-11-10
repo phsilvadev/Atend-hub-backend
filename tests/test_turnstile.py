@@ -54,13 +54,14 @@ def test_register_requires_server_verification_and_persistent_single_use(client,
     (success(action='platform_login'),200,False,403),
     (success(hostname='attacker.example'),200,False,403),
     (success(age=301),200,False,403),
-    (success(age=-120),200,False,403),
+    (lambda: success(age=-120),200,False,403),
     ({'success':True},200,False,403),
     ({'success':'true'},200,False,403),
     ({},500,False,503),
     ({},200,True,503),
 ])
 def test_invalid_provider_result_never_registers_or_leaks(client, database, signup, monkeypatch, payload, status, timeout, expected):
+    if callable(payload): payload=payload()  # Timestamp relative to this test, not collection time.
     configure(monkeypatch,payload,status,timeout)
     result=client.post('/api/v1/auth/register',json={**signup,'challenge_token':TOKEN})
     assert result.status_code == expected and TOKEN not in result.text and SECRET not in result.text

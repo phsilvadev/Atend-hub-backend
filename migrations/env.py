@@ -1,6 +1,7 @@
 from alembic import context
 from app.core.config import get_settings
 from app.core.database import Base, make_engine
+from app.models import support  # noqa: F401
 from app.models import products  # noqa: F401
 from app.models import gestaoclick  # noqa: F401
 from app.models import whatsapp_official  # noqa: F401
