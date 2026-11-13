@@ -473,3 +473,7 @@ Suporte publicado em 10/11/2026: backend c40b51e e cliente4920349 em origin/deve
 
 ### Consumo de IA no superadmin
 - [x] Livro durável sem prompts, cache/entrada/saída, tarifa versionada, cálculo Decimal e backfill do suporte; filtros e tela dinâmica com pendências de custo. 201 Pytest na suíte completa e 8 testes de consumo revalidados após otimização de aplicação de tarifas; 27 Vitest, build/TypeScript/lint e E2E API/SQLite real aprovados. Dados de teste apenas em ambiente temporário. USD estimado, sem fatura/câmbio ou uso externo.
+
+### Publicação do consumo de IA — 13/11/2026
+
+Push confirmado em origin/development: API 6790879 e superadmin 0610d01. Railway API 462d7527-eea2-4967-92fc-c5093a83523c e superadmin d38dd79f-39c0-417c-879d-69e96e54579c em SUCCESS. Readiness PostgreSQL/migrations HTTP 200, login HTTP 200, endpoints de consumo direto e BFF recusam acesso sem sessão com HTTP 401. OpenAPI de produção confirma consulta e tarifas. Consumo autenticado validado anteriormente por E2E com banco temporário; não foi realizada geração paga nesta publicação. Cliente sem mudanças pendentes, já publicado. Valores em USD são estimativas do uso instrumentado pela plataforma.
